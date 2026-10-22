@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { markDone } from "@/app/actions/student";
+import { QuizRunner } from "@/components/quiz-runner";
 import { Icon, LessonIcon, TYPE_LABEL } from "@/components/ui";
+import { BUNNY_ENABLED, embedUrl } from "@/lib/bunny";
+import { getLastAttempt, getQuizForStudent } from "@/lib/quiz";
 import { DEMO_MODE } from "@/lib/env";
 import { findLesson, getCompletedLessons, getMySubscriptions } from "@/lib/data";
 import { requireRole } from "@/lib/session";
@@ -12,7 +15,7 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
   const s = await requireRole("student");
   const found = await findLesson(id);
   if (!found) notFound();
-  const { teacher, unit, lesson, storagePath } = found;
+  const { teacher, unit, lesson, storagePath, videoId } = found;
   const subs = await getMySubscriptions(s.userId);
   const allowed = lesson.isFree || subs.some((x) => x.teacherId === teacher.id);
   const done = (await getCompletedLessons(s.userId)).has(lesson.id);
@@ -41,6 +44,9 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
     const { data } = await supabaseAdmin().storage.from("materials").createSignedUrl(storagePath, 600);
     fileUrl = data?.signedUrl ?? null;
   }
+  const videoUrl = BUNNY_ENABLED && videoId ? embedUrl(videoId) : null;
+  const quiz = lesson.type === "quiz" ? await getQuizForStudent(lesson.id) : [];
+  const last = lesson.type === "quiz" ? await getLastAttempt(s.userId, lesson.id) : null;
   const mark = `${s.fullName} · ${s.userId.slice(0, 8)}`;
   const doneAction = markDone.bind(null, lesson.id);
 
@@ -59,18 +65,27 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
         <LessonIcon type={lesson.type} />
       </div>
 
+      {lesson.type === "quiz" && quiz.length > 0 ? (
+        <div className="card panel">
+          <QuizRunner lessonId={lesson.id} questions={quiz} last={last} />
+        </div>
+      ) : (
       <div className="card panel">
-        <div className="reader">
-          {fileUrl ? (
+        <div className={videoUrl ? "reader video" : "reader"}>
+          {videoUrl ? (
+            <iframe src={videoUrl} title={lesson.title} allow="accelerometer; gyroscope; encrypted-media; picture-in-picture" allowFullScreen />
+          ) : fileUrl ? (
             <iframe src={`${fileUrl}#toolbar=0`} title={lesson.title} />
           ) : (
             <div className="empty" style={{ minHeight: 320, display: "grid", placeItems: "center" }}>
               {lesson.type === "video"
-                ? "مشغّل الفيديو المحمي جاي بالمرحلة الثانية."
+                ? DEMO_MODE || !BUNNY_ENABLED
+                  ? "الفيديو بيشتغل هون بعد ربط Bunny Stream. بالنسخة التجريبية ما في فيديوهات."
+                  : "الأستاذ لسا ما رفع الفيديو."
                 : lesson.type === "live"
                   ? `الحصة المباشرة: ${lesson.meta}. رابط الدخول بيظهر هون قبل الموعد.`
                   : lesson.type === "quiz"
-                    ? "الاختبارات التفاعلية جاية بالمرحلة الثانية."
+                    ? "الأستاذ لسا ما أضاف أسئلة لهالاختبار."
                     : DEMO_MODE
                       ? "بالنسخة التجريبية ما في ملفات مرفوعة. لما الأستاذ يرفع PDF بيظهر هون."
                       : "الأستاذ لسا ما رفع الملف."}
@@ -99,6 +114,7 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
           </span>
         </div>
       </div>
+      )}
     </>
   );
 }

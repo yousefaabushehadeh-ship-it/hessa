@@ -38,8 +38,7 @@ export function AddLessonForm({ units }: { units: { id: string; title: string }[
           </label>
           <select className="field" id="l-type" name="type" defaultValue="pdf">
             <option value="pdf">ملف PDF</option>
-            <option value="video">فيديو (قريبًا)</option>
-            <option value="quiz">اختبار (قريبًا)</option>
+            <option value="quiz">اختبار (بتضيف الأسئلة بعدين)</option>
             <option value="live">حصة مباشرة</option>
           </select>
         </div>
@@ -52,7 +51,7 @@ export function AddLessonForm({ units }: { units: { id: string; title: string }[
       </div>
       <div>
         <label className="h" htmlFor="l-file">
-          الملف (PDF لحد 20 ميجا)
+          الملف (لملفات PDF، لحد 20 ميجا)
         </label>
         <input className="field" id="l-file" name="file" type="file" accept="application/pdf" />
       </div>

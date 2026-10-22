@@ -72,3 +72,15 @@ insert into public.lessons (unit_id, title, type, meta, is_free, position) value
 
 -- Demo activation codes for أ. خالد العمري
 insert into public.activation_codes (code, teacher_id, plan) values ('HS-KHALED-01', '00000000-0000-4000-8000-000000000001', 'monthly'), ('HS-KHALED-02', '00000000-0000-4000-8000-000000000001', 'term');
+
+-- Sample quiz: questions for "اختبار قصير: قواعد الاشتقاق" (answer = index of the right option, from 0).
+insert into public.quiz_questions (lesson_id, position, prompt, options, answer)
+select l.id, q.pos, q.prompt, q.options, q.answer
+from public.lessons l
+join public.units u on u.id = l.unit_id and u.teacher_id = '00000000-0000-4000-8000-000000000001'
+cross join (values
+  (0, 'مشتقة ق(س) = س³ − 4س + 7 هي:', array['3س² − 4','3س² − 4س','س² − 4','3س³ − 4'], 0),
+  (1, 'إذا كان ص = جا س، فإن دص/دس تساوي:', array['−جتا س','جتا س','ظا س','−جا س'], 1),
+  (2, 'باستخدام قاعدة السلسلة، مشتقة (2س + 1)⁵ هي:', array['5(2س + 1)⁴','2(2س + 1)⁵','10(2س + 1)⁴','10(2س + 1)⁵'], 2)
+) as q(pos, prompt, options, answer)
+where l.title = 'اختبار قصير: قواعد الاشتقاق';

@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { DEMO_MODE } from "@/lib/env";
-import { DEMO_STUDENT, DEMO_TEACHER_ID, REVIEWS, TEACHERS } from "@/lib/demo-data";
+import { DEMO_STUDENT, DEMO_TEACHER_ID, TEACHERS } from "@/lib/demo-data";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Lesson, Review, Subscription, Teacher, TeacherFilters, Unit } from "@/lib/types";
+import type { Lesson, Subscription, Teacher, TeacherFilters, Unit } from "@/lib/types";
 
 // Every page reads through these functions, so the same UI runs on sample data
 // (demo mode) or on Supabase once the keys are set.
@@ -83,11 +83,6 @@ export async function getTeacherById(id: string): Promise<Teacher | null> {
   return data ? fromRow(data as TeacherRow) : null;
 }
 
-/** Reviews come in phase 2; until then every profile shows the sample ones. */
-export async function getReviews(_teacherId: string): Promise<Review[]> {
-  return REVIEWS;
-}
-
 export async function getMySubscriptions(userId: string): Promise<Subscription[]> {
   if (DEMO_MODE) {
     const raw = (await cookies()).get(DEMO_SUBS_COOKIE)?.value;
@@ -131,23 +126,23 @@ export async function getCompletedLessons(userId: string): Promise<Set<string>> 
   return new Set((data ?? []).map((r) => r.lesson_id as string));
 }
 
-export type FoundLesson = { teacher: Teacher; unit: Unit; lesson: Lesson; storagePath: string | null };
+export type FoundLesson = { teacher: Teacher; unit: Unit; lesson: Lesson; storagePath: string | null; videoId: string | null };
 
 export async function findLesson(lessonId: string): Promise<FoundLesson | null> {
   if (DEMO_MODE) {
     for (const teacher of TEACHERS)
       for (const unit of teacher.units)
-        for (const lesson of unit.lessons) if (lesson.id === lessonId) return { teacher, unit, lesson, storagePath: null };
+        for (const lesson of unit.lessons) if (lesson.id === lessonId) return { teacher, unit, lesson, storagePath: null, videoId: null };
     return null;
   }
   const supabase = await supabaseServer();
-  const { data } = await supabase.from("lessons").select("id, storage_path, units(teacher_id)").eq("id", lessonId).maybeSingle();
+  const { data } = await supabase.from("lessons").select("id, storage_path, video_id, units(teacher_id)").eq("id", lessonId).maybeSingle();
   if (!data) return null;
   const tid = (data.units as unknown as { teacher_id: string }).teacher_id;
   const teacher = await getTeacherById(tid);
   if (!teacher) return null;
   for (const unit of teacher.units)
-    for (const lesson of unit.lessons) if (lesson.id === lessonId) return { teacher, unit, lesson, storagePath: data.storage_path };
+    for (const lesson of unit.lessons) if (lesson.id === lessonId) return { teacher, unit, lesson, storagePath: data.storage_path, videoId: data.video_id };
   return null;
 }
 

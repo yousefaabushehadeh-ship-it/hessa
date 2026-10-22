@@ -57,3 +57,10 @@ export type Subscription = {
 };
 
 export type TeacherFilters = { q?: string; subject?: string; grade?: string; city?: string; sort?: "rating" | "students" | "price" };
+
+export type QuizQuestion = { id: string; prompt: string; options: string[] };
+/** Teachers see the right answer too. */
+export type QuizQuestionFull = QuizQuestion & { answer: number };
+export type QuizResult = { score: number; total: number; correct: number[]; answers: number[] };
+
+export type StudentRow = { id: string; name: string; plan: "monthly" | "term"; endsOn: string; progress: number; lastQuiz: string | null };

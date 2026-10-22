@@ -62,7 +62,8 @@ export async function addUnit(_prev: FormState, fd: FormData): Promise<FormState
   return { ok: `انضافت وحدة «${title}».` };
 }
 
-const TYPES: LessonType[] = ["video", "pdf", "quiz", "live"];
+// Videos go through app/actions/video.ts (direct upload to Bunny Stream).
+const TYPES: LessonType[] = ["pdf", "quiz", "live"];
 
 export async function addLesson(_prev: FormState, fd: FormData): Promise<FormState> {
   const id = await myTeacherId();

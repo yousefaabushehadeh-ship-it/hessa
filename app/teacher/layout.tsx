@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/session";
 const NAV: NavItem[] = [
   { href: "/teacher", label: "نظرة عامة", icon: "home" },
   { href: "/teacher/content", label: "المحتوى", icon: "book" },
+  { href: "/teacher/students", label: "الطلاب", icon: "users" },
   { href: "/teacher/profile", label: "صفحتي العامة", icon: "globe" },
 ];
 

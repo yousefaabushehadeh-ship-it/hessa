@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteFooter, SiteNav } from "@/components/site";
 import { Avatar, Icon, LessonIcon, Stars, TYPE_LABEL, Verified, fmt, fmtDate } from "@/components/ui";
-import { getMySubscriptions, getReviews, getTeacherBySlug } from "@/lib/data";
+import { ReviewForm } from "@/components/review-form";
+import { getMySubscriptions, getTeacherBySlug } from "@/lib/data";
+import { getMyReview, getReviews } from "@/lib/reviews";
 import { getSession } from "@/lib/session";
 
 type Params = Promise<{ slug: string }>;
@@ -21,6 +23,7 @@ export default async function TeacherPage({ params }: { params: Params }) {
   const subs = session?.role === "student" ? await getMySubscriptions(session.userId) : [];
   const sub = subs.find((s) => s.teacherId === t.id);
   const reviews = await getReviews(t.id);
+  const mine = sub && session ? await getMyReview(session.userId, t.id) : null;
   const count = t.units.reduce((a, u) => a + u.lessons.length, 0);
   const first = t.name.split(" ")[0];
 
@@ -156,8 +159,10 @@ export default async function TeacherPage({ params }: { params: Params }) {
                 <h2 style={{ margin: 0 }}>التقييمات</h2>
                 <Stars value={t.rating} />
               </div>
-              {reviews.map((r) => (
-                <div className="rev" key={r.author}>
+              {sub && <ReviewForm teacherId={t.id} mine={mine} />}
+              {reviews.length === 0 && <p className="muted">ما في تقييمات لسا. أول المشتركين بيقدروا يقيّموا.</p>}
+              {reviews.map((r, i) => (
+                <div className="rev" key={`${r.author}-${i}`}>
                   <div className="h">
                     <b style={{ fontFamily: "var(--f-display)" }}>{r.author}</b>
                     <span className="muted" style={{ fontSize: 13 }}>

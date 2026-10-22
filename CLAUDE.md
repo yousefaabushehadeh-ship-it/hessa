@@ -3,7 +3,10 @@
 - Next.js 15 App Router + TypeScript (strict) + Supabase. No Tailwind: styles are the prototype's CSS in `app/globals.css`, reuse its class names (`card`, `btn btn-pri`, `pill p-ok`, `tgrid`, `panel`, `ph2`...).
 - UI text is Arabic in Jordanian dialect, `dir="rtl"`. Keep copy short and friendly, no em-dashes.
 - All data access goes through `lib/data.ts`; every function has a demo branch (`DEMO_MODE` when Supabase env vars are missing) and a Supabase branch. Keep both working.
-- Demo state that server actions mutate lives on `globalThis` (`lib/demo-data.ts`, `lib/data.ts`), because Next loads modules once per route bundle.
+- Demo state that server actions mutate lives on `globalThis` (`lib/demo-data.ts`, `lib/data.ts`, `lib/demo-store.ts`), because Next loads modules once per route bundle.
+- Quiz answers never leave the database for students: read questions through `quiz_for_student`, grade through `submit_quiz`.
+- Video: `lib/bunny.ts` signs uploads (TUS from the browser) and embed URLs. Never send `BUNNY_*` keys to the client.
+- To test SQL locally, Postgres 16 is installed: load a small stub for Supabase's `auth`/`storage` schemas, then the migrations.
 - Mutations are server actions in `app/actions/*`, returning `{ ok?, error? }` for `useActionState`.
 - Security lives in the database: RLS policies and `protect_fields` in `supabase/migrations/0001_init.sql`. New tables need RLS on. New migrations go in a new numbered file.
 - Before pushing: `npm run typecheck && npm run build`.

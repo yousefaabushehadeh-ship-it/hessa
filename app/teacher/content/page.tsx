@@ -1,7 +1,11 @@
 import { TopBar } from "@/components/dash-shell";
 import { LessonIcon, TYPE_LABEL } from "@/components/ui";
 import { myTeacher } from "@/lib/teacher-context";
+import Link from "next/link";
+import { BUNNY_ENABLED } from "@/lib/bunny";
+import { DEMO_MODE } from "@/lib/env";
 import { AddLessonForm, AddUnitForm } from "./forms";
+import { VideoUploadForm } from "./video-upload";
 
 export default async function Content() {
   const t = await myTeacher();
@@ -35,6 +39,13 @@ export default async function Content() {
                           {TYPE_LABEL[l.type]} · {l.meta}
                         </td>
                         <td>{l.isFree ? <span className="pill p-ok">مجاني</span> : <span className="pill p-info">للمشتركين</span>}</td>
+                        <td>
+                          {l.type === "quiz" && (
+                            <Link className="link" href={`/teacher/content/quiz/${l.id}`}>
+                              الأسئلة
+                            </Link>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -46,7 +57,13 @@ export default async function Content() {
         <div className="col">
           <div className="card panel">
             <div className="ph2">
-              <h2>رفع مادة جديدة</h2>
+              <h2>رفع فيديو</h2>
+            </div>
+            <VideoUploadForm units={t.units.map((u) => ({ id: u.id, title: u.title }))} enabled={!DEMO_MODE && BUNNY_ENABLED} />
+          </div>
+          <div className="card panel">
+            <div className="ph2">
+              <h2>ملف، اختبار أو حصة مباشرة</h2>
             </div>
             <AddLessonForm units={t.units.map((u) => ({ id: u.id, title: u.title }))} />
           </div>
