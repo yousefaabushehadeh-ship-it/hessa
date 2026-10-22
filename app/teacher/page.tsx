@@ -2,39 +2,48 @@ import Link from "next/link";
 import { TopBar } from "@/components/dash-shell";
 import { Icon, fmt, fmtDate } from "@/components/ui";
 import { getTeacherStats, listMyCodes } from "@/lib/data";
+import { getLang, getT } from "@/lib/i18n-server";
 import { myTeacher } from "@/lib/teacher-context";
 import { CodesForm } from "./codes-form";
 
 export default async function TeacherHome() {
-  const t = await myTeacher();
-  const codes = await listMyCodes(t.id);
-  const st = await getTeacherStats(t, codes);
-  const first = t.name.split(" ")[0];
+  const t = await getT();
+  const lang = await getLang();
+  const x = await myTeacher();
+  const codes = await listMyCodes(x.id);
+  const st = await getTeacherStats(x, codes);
+  const first = x.name.split(" ")[0];
   return (
     <>
-      <TopBar title={`أهلا أستاذ ${first}`} sub="أنشئ أكواد تفعيل لطلابك، ورتّب موادّك من صفحة المحتوى." who={`أ. ${first}`} initial={t.initial} color={t.color} />
+      <TopBar
+        title={t("Welcome, Teacher {name}", { name: first })}
+        sub={t("Create activation codes for your students, and organize your content from the Content page.")}
+        who={`${t("Teacher")} ${first}`}
+        initial={x.initial}
+        color={x.color}
+      />
       <div className="kpis">
         <div className="card stat">
-          <div className="lbl">الطلاب المشتركين</div>
+          <div className="lbl">{t("Active students")}</div>
           <div className="v">{fmt(st.activeStudents)}</div>
         </div>
         <div className="card stat">
-          <div className="lbl">أكواد جاهزة للاستخدام</div>
+          <div className="lbl">{t("Unused codes")}</div>
           <div className="v">{st.codesLeft}</div>
         </div>
         <div className="card stat">
-          <div className="lbl">مواد منشورة</div>
+          <div className="lbl">{t("Published items")}</div>
           <div className="v">{st.lessons}</div>
-          <div className="sub">منها {st.freeLessons} مجانية للتجربة</div>
+          <div className="sub">{t("{n} free to try", { n: st.freeLessons })}</div>
         </div>
         <div className="card stat">
-          <div className="lbl">السعر الشهري</div>
+          <div className="lbl">{t("Monthly price")}</div>
           <div className="v">
-            {t.priceMonth} <small>د.أ</small>
+            {x.priceMonth} <small>JOD</small>
           </div>
           <div className="sub">
             <Link className="link" href="/teacher/profile">
-              عدّل
+              {t("Edit")}
             </Link>
           </div>
         </div>
@@ -43,19 +52,19 @@ export default async function TeacherHome() {
         <div className="col">
           <div className="card panel">
             <div className="ph2">
-              <h2>أكواد التفعيل</h2>
+              <h2>{t("Activation codes")}</h2>
               <span className="muted" style={{ fontSize: 13 }}>
-                كل كود لطالب واحد
+                {t("One code per student")}
               </span>
             </div>
             <div className="scroll">
               <table className="tbl">
                 <thead>
                   <tr>
-                    <th>الكود</th>
-                    <th>الباقة</th>
-                    <th className="hide-s">أُنشئ</th>
-                    <th>الحالة</th>
+                    <th>{t("Code")}</th>
+                    <th>{t("Plan")}</th>
+                    <th className="hide-s">{t("Created")}</th>
+                    <th>{t("Status")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -64,9 +73,9 @@ export default async function TeacherHome() {
                       <td className="num" dir="ltr" style={{ textAlign: "start" }}>
                         {c.code}
                       </td>
-                      <td className="muted">{c.plan === "term" ? "فصلي" : "شهري"}</td>
-                      <td className="muted hide-s">{fmtDate(c.createdAt)}</td>
-                      <td>{c.usedBy ? <span className="pill p-info">مستخدم</span> : <span className="pill p-ok">جاهز</span>}</td>
+                      <td className="muted">{c.plan === "term" ? t("Term") : t("Monthly")}</td>
+                      <td className="muted hide-s">{fmtDate(lang, c.createdAt)}</td>
+                      <td>{c.usedBy ? <span className="pill p-info">{t("Used")}</span> : <span className="pill p-ok">{t("Ready")}</span>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -77,19 +86,19 @@ export default async function TeacherHome() {
         <div className="col">
           <div className="card panel">
             <div className="ph2">
-              <h2>أنشئ أكواد جديدة</h2>
+              <h2>{t("Create new codes")}</h2>
             </div>
             <CodesForm />
           </div>
           <div className="card panel">
             <div className="ph2">
-              <h2>صفحتك العامة</h2>
+              <h2>{t("My public page")}</h2>
             </div>
             <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
-              شارك هالرابط مع طلابك عشان يشوفوا موادّك ويجرّبوا الدروس المجانية.
+              {t("Share this link with your students so they can see your materials and try the free lessons.")}
             </p>
-            <Link className="btn btn-ghost btn-sm" href={`/${t.slug}`}>
-              <Icon name="globe" sm /> hessa.jo/{t.slug}
+            <Link className="btn btn-ghost btn-sm" href={`/${x.slug}`}>
+              <Icon name="globe" sm /> hessa.jo/{x.slug}
             </Link>
           </div>
         </div>

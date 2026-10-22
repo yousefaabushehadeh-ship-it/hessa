@@ -30,6 +30,13 @@ export async function getSession(): Promise<Session | null> {
   };
 }
 
+/** Any signed-in person, of any role. Sends everyone else to the login page. */
+export async function requireSession(): Promise<Session> {
+  const s = await getSession();
+  if (!s) redirect("/login");
+  return s;
+}
+
 /** Sends people who aren't signed in (or have the wrong role) to the login page. */
 export async function requireRole(role: Role): Promise<Session> {
   const s = await getSession();

@@ -1,33 +1,45 @@
 import Link from "next/link";
 import { TopBar } from "@/components/dash-shell";
-import { Avatar, Icon, LessonIcon, TYPE_LABEL, fmtDate } from "@/components/ui";
+import { Avatar, Icon, LessonIcon, fmtDate, typeLabel } from "@/components/ui";
 import { getCompletedLessons, getMySubscriptions, getTeacherById } from "@/lib/data";
+import { dataLabel } from "@/lib/i18n";
+import { getLang, getT } from "@/lib/i18n-server";
 import { requireRole } from "@/lib/session";
 
 const EXAM_DATE = new Date("2027-06-20");
 
 export default async function StudentHome() {
+  const t = await getT();
+  const lang = await getLang();
   const s = await requireRole("student");
   const subs = await getMySubscriptions(s.userId);
   const done = await getCompletedLessons(s.userId);
-  const teachers = (await Promise.all(subs.map((x) => getTeacherById(x.teacherId)))).filter((t) => t !== null);
+  const teachers = (await Promise.all(subs.map((x) => getTeacherById(x.teacherId)))).filter((x) => x !== null);
   const days = Math.max(0, Math.ceil((EXAM_DATE.getTime() - Date.now()) / 864e5));
-  const first = s.fullName.split(" ")[0] || "يا بطل";
-  // "Up next": the first lesson not yet finished, per teacher.
-  const nextUp = teachers.flatMap((t) => {
-    const l = t.units.flatMap((u) => u.lessons).find((x) => !done.has(x.id));
-    return l ? [{ t, l }] : [];
+  const first = s.fullName.split(" ")[0] || "";
+  // "Pick up where you left off": the first lesson not yet finished, per teacher.
+  const nextUp = teachers.flatMap((x) => {
+    const l = x.units.flatMap((u) => u.lessons).find((y) => !done.has(y.id));
+    return l ? [{ x, l }] : [];
   });
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? t("Good morning") : t("Good evening");
 
   return (
     <>
-      <TopBar title={`أهلا يا ${first}`} sub={`ضايلك تقريبًا ${days} يوم على امتحانات التوجيهي`} who={first} initial={first[0]} color="var(--orange)" />
+      <TopBar
+        title={`${greet}, ${first}`}
+        sub={t("About {n} days left until the Tawjihi exams", { n: days })}
+        who={first}
+        initial={first[0] ?? "S"}
+        color="var(--orange)"
+      />
       <div className="kpis">
         {subs.map((x) => {
-          const t = teachers.find((y) => y.id === x.teacherId);
+          const tc = teachers.find((y) => y.id === x.teacherId);
           return (
             <div className="card stat" key={x.teacherId}>
-              <div className="lbl">تقدّمك بمادة {t?.subject}</div>
+              <div className="lbl">{t("Your progress in {subject}", { subject: dataLabel(lang, tc?.subject ?? "") })}</div>
               <div className="v">{x.progress}%</div>
               <div className="bar">
                 <i style={{ width: `${x.progress}%` }} />
@@ -36,11 +48,11 @@ export default async function StudentHome() {
           );
         })}
         <div className="card stat">
-          <div className="lbl">اشتراكات فعّالة</div>
+          <div className="lbl">{t("Active subscriptions")}</div>
           <div className="v">{subs.length}</div>
           <div className="sub">
             <Link className="link" href="/student/redeem">
-              فعّل كود جديد
+              {t("Activate a new code")}
             </Link>
           </div>
         </div>
@@ -49,19 +61,19 @@ export default async function StudentHome() {
         <div className="col">
           <div className="card panel">
             <div className="ph2">
-              <h2>كمّل من وين وقفت</h2>
+              <h2>{t("Pick up where you left off")}</h2>
               <Link className="link" href="/student/materials">
-                كل المواد
+                {t("All materials")}
               </Link>
             </div>
             {nextUp.length ? (
-              nextUp.map(({ t, l }) => (
+              nextUp.map(({ x, l }) => (
                 <Link key={l.id} className="lesson" href={`/student/lesson/${l.id}`}>
                   <LessonIcon type={l.type} />
                   <span className="t">
                     <b>{l.title}</b>
                     <span>
-                      أ. {t.name} · {TYPE_LABEL[l.type]} · {l.meta}
+                      {t("Teacher {name}", { name: x.name })} · {typeLabel(lang, l.type)} · {l.meta}
                     </span>
                   </span>
                   <Icon name="arrow" sm />
@@ -69,9 +81,9 @@ export default async function StudentHome() {
               ))
             ) : (
               <div className="empty">
-                ما عندك اشتراكات لسا. <Link className="link" href="/teachers">تصفّح الأساتذة</Link> أو{" "}
+                {t("You don't have any subscriptions yet.")} <Link className="link" href="/teachers">{t("Browse teachers")}</Link> {t("or")}{" "}
                 <Link className="link" href="/student/redeem">
-                  فعّل كود
+                  {t("activate a code")}
                 </Link>
                 .
               </div>
@@ -81,25 +93,27 @@ export default async function StudentHome() {
         <div className="col">
           <div className="card panel">
             <div className="ph2">
-              <h2>أساتذتي</h2>
+              <h2>{t("My teachers")}</h2>
               <Link className="link" href="/teachers">
-                <Icon name="plus" sm /> اشترك بجديد
+                <Icon name="plus" sm /> {t("Subscribe to a new teacher")}
               </Link>
             </div>
             {subs.map((x) => {
-              const t = teachers.find((y) => y.id === x.teacherId);
-              if (!t) return null;
+              const tc = teachers.find((y) => y.id === x.teacherId);
+              if (!tc) return null;
               const soon = new Date(x.endsOn).getTime() - Date.now() < 5 * 864e5;
               return (
-                <Link key={t.id} className="trow" href={`/${t.slug}`} style={{ textDecoration: "none" }}>
-                  <Avatar t={t} size={48} />
+                <Link key={tc.id} className="trow" href={`/${tc.slug}`} style={{ textDecoration: "none" }}>
+                  <Avatar t={tc} size={48} />
                   <div className="t">
-                    <b>أ. {t.name}</b>
+                    <b>
+                      {t("Teacher")} {tc.name}
+                    </b>
                     <span>
-                      {t.subject} · لحد {fmtDate(x.endsOn)}
+                      {dataLabel(lang, tc.subject)} · {t("Until {date}", { date: fmtDate(lang, x.endsOn) })}
                     </span>
                   </div>
-                  {soon ? <span className="pill p-warn">قرّب يخلص</span> : <span className="pill p-ok">فعّال</span>}
+                  {soon ? <span className="pill p-warn">{t("Ending soon")}</span> : <span className="pill p-ok">{t("Active")}</span>}
                 </Link>
               );
             })}

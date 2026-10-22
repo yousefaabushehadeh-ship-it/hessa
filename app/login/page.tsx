@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SiteNav } from "@/components/site";
 import { DEMO_MODE } from "@/lib/env";
+import { getT } from "@/lib/i18n-server";
 import { getSession } from "@/lib/session";
 import { LoginFlow } from "./login-flow";
 
-export const metadata: Metadata = { title: "الدخول" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("Sign in") };
+}
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ as?: string; next?: string }> }) {
   const sp = await searchParams;

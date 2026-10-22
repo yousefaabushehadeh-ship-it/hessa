@@ -3,21 +3,27 @@ import { SiteFooter, SiteNav } from "@/components/site";
 import { Icon, TeacherCard } from "@/components/ui";
 import { SUBJECTS, TEACHERS } from "@/lib/demo-data";
 import { listTeachers } from "@/lib/data";
+import { dataLabel } from "@/lib/i18n";
+import { getLang, getT } from "@/lib/i18n-server";
 import type { TeacherFilters } from "@/lib/types";
 
-export const metadata: Metadata = { title: "لاقي أستاذك" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("Find your teacher") };
+}
 
 const GRADES = ["", "توجيهي علمي", "جميع الفروع", "الصفوف 9 لـ 11"];
-const SORTS: [NonNullable<TeacherFilters["sort"]>, string][] = [
-  ["rating", "الأعلى تقييمًا"],
-  ["students", "الأكثر طلابًا"],
-  ["price", "السعر الأقل"],
-];
 
 type Search = Promise<Record<string, string | undefined>>;
 
 export default async function Browse({ searchParams }: { searchParams: Search }) {
+  const t = await getT();
+  const lang = await getLang();
   const sp = await searchParams;
+  const SORTS: [NonNullable<TeacherFilters["sort"]>, string][] = [
+    ["rating", t("Highest rated")],
+    ["students", t("Most students")],
+    ["price", t("Lowest price")],
+  ];
   const f: TeacherFilters = {
     q: sp.q,
     subject: sp.subject,
@@ -26,50 +32,54 @@ export default async function Browse({ searchParams }: { searchParams: Search })
     sort: (["rating", "students", "price"].includes(sp.sort ?? "") ? sp.sort : "rating") as TeacherFilters["sort"],
   };
   const list = await listTeachers(f);
-  const cities = [...new Set(TEACHERS.map((t) => t.city))];
+  const cities = [...new Set(TEACHERS.map((x) => x.city))];
   return (
     <>
       <SiteNav active="browse" />
       <div className="gut">
         <form className="wrap browse" method="get">
-          <aside className="card filters" aria-label="تصفية">
+          <aside className="card filters" aria-label={t("Filters")}>
             <div>
               <label className="h" htmlFor="f-subject">
-                المادة
+                {t("Subject")}
               </label>
               <select className="field" id="f-subject" name="subject" defaultValue={f.subject ?? ""}>
-                <option value="">كل المواد</option>
+                <option value="">{t("All subjects")}</option>
                 {SUBJECTS.map(([s]) => (
-                  <option key={s}>{s}</option>
+                  <option key={s} value={s}>
+                    {dataLabel(lang, s)}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className="h" htmlFor="f-grade">
-                الصف
+                {t("Grade")}
               </label>
               <select className="field" id="f-grade" name="grade" defaultValue={f.grade ?? ""}>
                 {GRADES.map((g) => (
                   <option key={g} value={g}>
-                    {g || "الكل"}
+                    {g ? dataLabel(lang, g) : t("All")}
                   </option>
                 ))}
               </select>
             </div>
             <div>
               <label className="h" htmlFor="f-city">
-                المدينة
+                {t("City")}
               </label>
               <select className="field" id="f-city" name="city" defaultValue={f.city ?? ""}>
-                <option value="">كل المدن</option>
+                <option value="">{t("All cities")}</option>
                 {cities.map((c) => (
-                  <option key={c}>{c}</option>
+                  <option key={c} value={c}>
+                    {dataLabel(lang, c)}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className="h" htmlFor="f-sort">
-                الترتيب
+                {t("Sort by")}
               </label>
               <select className="field" id="f-sort" name="sort" defaultValue={f.sort}>
                 {SORTS.map(([v, l]) => (
@@ -80,27 +90,27 @@ export default async function Browse({ searchParams }: { searchParams: Search })
               </select>
             </div>
             <button className="btn btn-pri" type="submit">
-              اعرض النتائج
+              {t("Show results")}
             </button>
           </aside>
           <section style={{ minWidth: 0 }}>
-            <h1 style={{ fontSize: 28, marginBottom: 6 }}>لاقي أستاذك</h1>
+            <h1 style={{ fontSize: 28, marginBottom: 6 }}>{t("Find your teacher")}</h1>
             <p className="muted" style={{ marginBottom: 18 }}>
-              كل أستاذ إله صفحة فيها موادّه وحصصه، وفيه دروس مجانية تجرّبها قبل الاشتراك.
+              {t("Every teacher has a page with their subjects and lessons, and free lessons you can try before subscribing.")}
             </p>
             <label className="search">
               <Icon name="search" />
-              <input name="q" placeholder="ابحث باسم الأستاذ أو المادة..." defaultValue={f.q ?? ""} aria-label="بحث" />
+              <input name="q" placeholder={t("Search by teacher name or subject...")} defaultValue={f.q ?? ""} aria-label={t("Search")} />
             </label>
             <div className="rhead">
-              <span className="muted">{list.length} أستاذ</span>
+              <span className="muted">{t("{n} teachers", { n: list.length })}</span>
             </div>
             <div className="tgrid">
               {list.length ? (
-                list.map((t) => <TeacherCard key={t.id} t={t} />)
+                list.map((x) => <TeacherCard key={x.id} t={x} lang={lang} />)
               ) : (
                 <div className="card empty" style={{ gridColumn: "1/-1" }}>
-                  ما في أساتذة بهالتصفية حاليًا. جرّب مادة أو مدينة ثانية.
+                  {t("No teachers match these filters right now. Try another subject or city.")}
                 </div>
               )}
             </div>

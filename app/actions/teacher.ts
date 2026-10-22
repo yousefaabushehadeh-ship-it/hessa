@@ -1,5 +1,6 @@
 "use server";
 
+import { getT } from "@/lib/i18n-server";
 import { randomBytes, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { DEMO_MODE } from "@/lib/env";
@@ -20,6 +21,7 @@ async function myTeacherId() {
 const num = (v: FormDataEntryValue | null) => Number(String(v ?? "").replace(/[^\d.]/g, ""));
 
 export async function updateProfile(_prev: FormState, fd: FormData): Promise<FormState> {
+  const t = await getT();
   const id = await myTeacherId();
   const patch = {
     headline: String(fd.get("headline") ?? "").trim().slice(0, 160),
@@ -29,9 +31,9 @@ export async function updateProfile(_prev: FormState, fd: FormData): Promise<For
     price_month: num(fd.get("priceMonth")),
     price_term: num(fd.get("priceTerm")),
   };
-  if (!patch.headline) return { error: "اكتب سطر تعريفي قصير." };
+  if (!patch.headline) return { error: t("Write a short headline.") };
   if (!(patch.price_month >= 1 && patch.price_month <= 500) || !(patch.price_term >= 1 && patch.price_term <= 1500))
-    return { error: "السعر لازم يكون رقم بين 1 و 500 دينار للشهري." };
+    return { error: t("The monthly price must be between 1 and 500 JOD.") };
 
   if (DEMO_MODE) {
     const t = TEACHERS.find((x) => x.id === id)!;
@@ -39,16 +41,17 @@ export async function updateProfile(_prev: FormState, fd: FormData): Promise<For
   } else {
     const supabase = await supabaseServer();
     const { error } = await supabase.from("teachers").update(patch).eq("id", id);
-    if (error) return { error: "ما قدرنا نحفظ التعديلات." };
+    if (error) return { error: t("We couldn't save your changes.") };
   }
   revalidatePath("/", "layout");
-  return { ok: "انحفظت التعديلات، وصفحتك العامة صارت محدّثة." };
+  return { ok: t("Your changes are saved and your public page is updated.") };
 }
 
 export async function addUnit(_prev: FormState, fd: FormData): Promise<FormState> {
+  const t = await getT();
   const id = await myTeacherId();
   const title = String(fd.get("title") ?? "").trim();
-  if (title.length < 2) return { error: "اكتب اسم الوحدة." };
+  if (title.length < 2) return { error: t("Enter the unit name.") };
   if (DEMO_MODE) {
     const t = TEACHERS.find((x) => x.id === id)!;
     t.units.push({ id: `${id}-u${t.units.length}`, title, position: t.units.length, lessons: [] });
@@ -56,16 +59,17 @@ export async function addUnit(_prev: FormState, fd: FormData): Promise<FormState
     const supabase = await supabaseServer();
     const { count } = await supabase.from("units").select("id", { count: "exact", head: true }).eq("teacher_id", id);
     const { error } = await supabase.from("units").insert({ teacher_id: id, title, position: count ?? 0 });
-    if (error) return { error: "ما قدرنا نضيف الوحدة." };
+    if (error) return { error: t("We couldn't add the unit.") };
   }
   revalidatePath("/teacher/content");
-  return { ok: `انضافت وحدة «${title}».` };
+  return { ok: t("Unit «{title}» was added.", { title }) };
 }
 
 // Videos go through app/actions/video.ts (direct upload to Bunny Stream).
 const TYPES: LessonType[] = ["pdf", "quiz", "live"];
 
 export async function addLesson(_prev: FormState, fd: FormData): Promise<FormState> {
+  const t = await getT();
   const id = await myTeacherId();
   const unitId = String(fd.get("unit") ?? "");
   const title = String(fd.get("title") ?? "").trim();
@@ -73,35 +77,35 @@ export async function addLesson(_prev: FormState, fd: FormData): Promise<FormSta
   const meta = String(fd.get("meta") ?? "").trim();
   const isFree = fd.get("free") === "on";
   const file = fd.get("file");
-  if (title.length < 3) return { error: "اكتب عنوان المادة." };
-  if (!TYPES.includes(type)) return { error: "اختار نوع المادة." };
+  if (title.length < 3) return { error: t("Enter the item title.") };
+  if (!TYPES.includes(type)) return { error: t("Choose the item type.") };
   const hasFile = file instanceof File && file.size > 0;
-  if (type === "pdf" && !hasFile) return { error: "اختار ملف PDF." };
-  if (hasFile && (file.type !== "application/pdf" || file.size > 20 * 1024 * 1024)) return { error: "الملف لازم يكون PDF وحجمه أقل من 20 ميجا." };
+  if (type === "pdf" && !hasFile) return { error: t("Choose a PDF file.") };
+  if (hasFile && (file.type !== "application/pdf" || file.size > 20 * 1024 * 1024)) return { error: t("The file must be a PDF under 20 MB.") };
 
   if (DEMO_MODE) {
     const unit = TEACHERS.find((x) => x.id === id)?.units.find((u) => u.id === unitId);
-    if (!unit) return { error: "اختار الوحدة." };
-    unit.lessons.push({ id: `${unitId}-l${unit.lessons.length}`, title, type, meta: meta || (hasFile ? "ملف جديد" : ""), isFree, position: unit.lessons.length });
+    if (!unit) return { error: t("Choose the unit.") };
+    unit.lessons.push({ id: `${unitId}-l${unit.lessons.length}`, title, type, meta: meta || (hasFile ? t("New file") : ""), isFree, position: unit.lessons.length });
   } else {
     const supabase = await supabaseServer();
     const { data: unit } = await supabase.from("units").select("id").eq("id", unitId).eq("teacher_id", id).maybeSingle();
-    if (!unit) return { error: "اختار الوحدة." };
+    if (!unit) return { error: t("Choose the unit.") };
     let storagePath: string | null = null;
     if (hasFile) {
       // The first folder must be the teacher id: the storage policy checks it.
       storagePath = `${id}/${randomUUID()}.pdf`;
       const { error } = await supabase.storage.from("materials").upload(storagePath, file, { contentType: "application/pdf" });
-      if (error) return { error: "ما قدرنا نرفع الملف." };
+      if (error) return { error: t("We couldn't upload the file.") };
     }
     const { count } = await supabase.from("lessons").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
     const { error } = await supabase
       .from("lessons")
       .insert({ unit_id: unitId, title, type, meta, is_free: isFree, position: count ?? 0, storage_path: storagePath });
-    if (error) return { error: "ما قدرنا نحفظ المادة." };
+    if (error) return { error: t("We couldn't save the item.") };
   }
   revalidatePath("/", "layout");
-  return { ok: `انضافت «${title}» وصارت ظاهرة لطلابك.` };
+  return { ok: t("«{title}» was added and is now visible to your students.", { title }) };
 }
 
 function newCode() {
@@ -113,6 +117,7 @@ function newCode() {
 }
 
 export async function createCodes(_prev: FormState, fd: FormData): Promise<FormState> {
+  const t = await getT();
   const id = await myTeacherId();
   const count = Math.min(50, Math.max(1, Math.floor(num(fd.get("count")))));
   const plan: "monthly" | "term" = fd.get("plan") === "term" ? "term" : "monthly";
@@ -123,8 +128,8 @@ export async function createCodes(_prev: FormState, fd: FormData): Promise<FormS
   } else {
     const supabase = await supabaseServer();
     const { error } = await supabase.from("activation_codes").insert(codes.map((code) => ({ code, teacher_id: id, plan })));
-    if (error) return { error: "ما قدرنا ننشئ الأكواد." };
+    if (error) return { error: t("We couldn't create the codes.") };
   }
   revalidatePath("/teacher");
-  return { ok: `جهزت ${count} ${count === 1 ? "كود" : "أكواد"}. ابعث كل كود لطالب واحد بعد ما يدفعلك.`, codes };
+  return { ok: t("{count} code(s) ready. Send each code to one student after they pay you.", { count }), codes };
 }

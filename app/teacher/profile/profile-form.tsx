@@ -2,55 +2,57 @@
 
 import { useActionState } from "react";
 import { updateProfile } from "@/app/actions/teacher";
+import { useT } from "@/components/lang";
 
 type Fields = { headline: string; bio: string; education: string; liveSchedule: string; priceMonth: number; priceTerm: number };
 
-export function ProfileForm({ t }: { t: Fields }) {
+export function ProfileForm({ t: fields }: { t: Fields }) {
+  const t = useT();
   const [state, action, pending] = useActionState(updateProfile, {});
   return (
     <form className="frm" action={action}>
       <div>
         <label className="h" htmlFor="p-head">
-          سطر تعريفي
+          {t("Short headline")}
         </label>
-        <input className="field" id="p-head" name="headline" defaultValue={t.headline} maxLength={160} required />
+        <input className="field" id="p-head" name="headline" defaultValue={fields.headline} maxLength={160} required />
       </div>
       <div>
         <label className="h" htmlFor="p-bio">
-          عن الأستاذ
+          {t("About you")}
         </label>
-        <textarea className="field" id="p-bio" name="bio" rows={5} defaultValue={t.bio} maxLength={1200} />
+        <textarea className="field" id="p-bio" name="bio" rows={5} defaultValue={fields.bio} maxLength={1200} />
       </div>
       <div>
         <label className="h" htmlFor="p-edu">
-          المؤهل
+          {t("Qualifications")}
         </label>
-        <input className="field" id="p-edu" name="education" defaultValue={t.education} />
+        <input className="field" id="p-edu" name="education" defaultValue={fields.education} />
       </div>
       <div>
         <label className="h" htmlFor="p-live">
-          مواعيد الحصص المباشرة
+          {t("Live class times")}
         </label>
-        <input className="field" id="p-live" name="live" defaultValue={t.liveSchedule} placeholder="السبت والثلاثاء · 7:00 مساءً" />
+        <input className="field" id="p-live" name="live" defaultValue={fields.liveSchedule} placeholder={t("e.g. Sat & Tue · 7:00 PM")} />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div>
           <label className="h" htmlFor="p-pm">
-            السعر الشهري (د.أ)
+            {t("Monthly price (JOD)")}
           </label>
-          <input className="field num" id="p-pm" name="priceMonth" type="number" min={1} max={500} defaultValue={t.priceMonth} required />
+          <input className="field num" id="p-pm" name="priceMonth" type="number" min={1} max={500} defaultValue={fields.priceMonth} required />
         </div>
         <div>
           <label className="h" htmlFor="p-pt">
-            السعر الفصلي (د.أ)
+            {t("Term price (JOD)")}
           </label>
-          <input className="field num" id="p-pt" name="priceTerm" type="number" min={1} max={1500} defaultValue={t.priceTerm} required />
+          <input className="field num" id="p-pt" name="priceTerm" type="number" min={1} max={1500} defaultValue={fields.priceTerm} required />
         </div>
       </div>
       {state.error && <p className="form-error">{state.error}</p>}
       {state.ok && <p className="form-ok">{state.ok}</p>}
       <button className="btn btn-pri" disabled={pending}>
-        {pending ? "لحظة..." : "احفظ"}
+        {pending ? t("One moment...") : t("Save")}
       </button>
     </form>
   );

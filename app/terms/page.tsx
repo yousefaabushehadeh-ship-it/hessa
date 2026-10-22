@@ -1,19 +1,23 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal";
+import { getT } from "@/lib/i18n-server";
 
-export const metadata: Metadata = { title: "شروط الاستخدام" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("Terms of use") };
+}
 
-export default function Terms() {
+export default async function Terms() {
+  const t = await getT();
   return (
-    <LegalPage title="شروط الاستخدام">
-      <h2>الحساب</h2>
-      <p>الحساب شخصي ولشخص واحد. مشاركة الحساب أو الكود مع حدا ثاني بتوقف الاشتراك.</p>
-      <h2>المحتوى</h2>
-      <p>المواد ملك الأستاذ. ممنوع تنزيلها أو تصويرها أو نشرها برا المنصة، وكل مادة عليها علامة مائية باسم الطالب.</p>
-      <h2>الاشتراك</h2>
-      <p>كود التفعيل بيفتح مواد أستاذ واحد لمدة 30 يوم (شهري) أو 90 يوم (فصلي) من يوم التفعيل.</p>
-      <h2>الأساتذة</h2>
-      <p>الأستاذ مسؤول عن محتواه ودقّته، وما بتنزل صفحته للعامة إلا بعد توثيق هويته ومؤهله.</p>
+    <LegalPage title={t("Terms of use")}>
+      <h2>{t("Your account")}</h2>
+      <p>{t("Your account is personal and for one person only. Sharing your account or code with someone else cancels your subscription.")}</p>
+      <h2>{t("Content")}</h2>
+      <p>{t("Materials belong to the teacher. You may not download, record or share them outside the platform. Every file carries a watermark with your name.")}</p>
+      <h2>{t("Subscriptions")}</h2>
+      <p>{t("An activation code opens one teacher's materials for 30 days (monthly) or 90 days (term) from the day you activate it.")}</p>
+      <h2>{t("Teachers")}</h2>
+      <p>{t("Teachers are responsible for their content and its accuracy. A teacher's page goes public only after their identity and qualifications are verified.")}</p>
     </LegalPage>
   );
 }

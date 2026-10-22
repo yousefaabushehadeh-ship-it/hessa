@@ -1,31 +1,40 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SiteFooter, SiteNav } from "@/components/site";
-import { Avatar, Icon, LessonIcon, Stars, TYPE_LABEL, Verified, fmt, fmtDate } from "@/components/ui";
 import { ReviewForm } from "@/components/review-form";
+import { SiteFooter, SiteNav } from "@/components/site";
+import { Avatar, Icon, LessonIcon, Stars, Verified, fmt, fmtDate, typeLabel } from "@/components/ui";
 import { getMySubscriptions, getTeacherBySlug } from "@/lib/data";
+import { dataLabel } from "@/lib/i18n";
+import { getLang, getT } from "@/lib/i18n-server";
 import { getMyReview, getReviews } from "@/lib/reviews";
 import { getSession } from "@/lib/session";
 
 type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const t = await getTeacherBySlug((await params).slug);
-  if (!t) return {};
-  return { title: `أ. ${t.name}، أستاذ ${t.subject} في ${t.city}`, description: t.headline };
+  const t = await getT();
+  const lang = await getLang();
+  const x = await getTeacherBySlug((await params).slug);
+  if (!x) return {};
+  return {
+    title: t("Teacher {name}, {subject} teacher in {city}", { name: x.name, subject: dataLabel(lang, x.subject), city: dataLabel(lang, x.city) }),
+    description: x.headline,
+  };
 }
 
 export default async function TeacherPage({ params }: { params: Params }) {
-  const t = await getTeacherBySlug((await params).slug);
-  if (!t) notFound();
+  const t = await getT();
+  const lang = await getLang();
+  const teacher = await getTeacherBySlug((await params).slug);
+  if (!teacher) notFound();
   const session = await getSession();
   const subs = session?.role === "student" ? await getMySubscriptions(session.userId) : [];
-  const sub = subs.find((s) => s.teacherId === t.id);
-  const reviews = await getReviews(t.id);
-  const mine = sub && session ? await getMyReview(session.userId, t.id) : null;
-  const count = t.units.reduce((a, u) => a + u.lessons.length, 0);
-  const first = t.name.split(" ")[0];
+  const sub = subs.find((s) => s.teacherId === teacher.id);
+  const reviews = await getReviews(teacher.id, lang);
+  const mine = sub && session ? await getMyReview(session.userId, teacher.id) : null;
+  const count = teacher.units.reduce((a, u) => a + u.lessons.length, 0);
+  const first = teacher.name.split(" ")[0];
 
   return (
     <>
@@ -35,71 +44,73 @@ export default async function TeacherPage({ params }: { params: Params }) {
         <div className="wrap prof">
           <div className="prof-main">
             <div className="card ph">
-              <Avatar t={t} size={96} />
+              <Avatar t={teacher} size={96} />
               <div style={{ flex: 1, minWidth: 220 }}>
                 <h1>
-                  أ. {t.name}
-                  {t.verified && <Verified />}
+                  {t("Teacher")} {teacher.name}
+                  {teacher.verified && <Verified title={t("Verified: identity and qualification checked")} />}
                 </h1>
                 <p className="muted" style={{ marginTop: 4 }}>
-                  {t.headline}
+                  {teacher.headline}
                 </p>
                 <div className="tags">
-                  <span className="pill p-info">{t.subject}</span>
-                  <span className="pill p-info">{t.grade}</span>
+                  <span className="pill p-info">{dataLabel(lang, teacher.subject)}</span>
+                  <span className="pill p-info">{dataLabel(lang, teacher.grade)}</span>
                   <span className="pill p-info">
-                    <Icon name="pin" sm /> {t.city}
+                    <Icon name="pin" sm /> {dataLabel(lang, teacher.city)}
                   </span>
-                  {t.badge && <span className="pill p-ok">{t.badge}</span>}
+                  {teacher.badge && <span className="pill p-ok">{teacher.badge}</span>}
                 </div>
                 <div className="kv">
                   <div>
-                    <b className="num">{t.rating.toFixed(1)}</b>
-                    <span>{t.reviewCount} تقييم</span>
+                    <b className="num">{teacher.rating.toFixed(1)}</b>
+                    <span>{t("{n} reviews", { n: teacher.reviewCount })}</span>
                   </div>
                   <div>
-                    <b className="num">{fmt(t.studentCount)}</b>
-                    <span>طالب</span>
+                    <b className="num">{fmt(teacher.studentCount)}</b>
+                    <span>{t("students")}</span>
                   </div>
                   <div>
-                    <b className="num">{t.years}</b>
-                    <span>سنة خبرة</span>
+                    <b className="num">{teacher.years}</b>
+                    <span>{t("years of experience")}</span>
                   </div>
                   <div>
                     <b className="num">{count}</b>
-                    <span>مادة منشورة</span>
+                    <span>{t("published lessons")}</span>
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18, alignItems: "center" }}>
                   <a
                     className="btn btn-ghost btn-sm"
-                    href={`https://wa.me/?text=${encodeURIComponent(`صفحة أ. ${t.name} على حِصّة: https://hessa.jo/${t.slug}`)}`}
+                    href={`https://wa.me/?text=${encodeURIComponent(t("Teacher page on Hessa: {url}", { url: `https://hessa.jo/${teacher.slug}` }))}`}
                     target="_blank"
                     rel="noopener"
                   >
-                    <Icon name="share" sm /> hessa.jo/{t.slug}
+                    <Icon name="share" sm /> hessa.jo/{teacher.slug}
                   </a>
                   <span className="muted" style={{ fontSize: 12.5, display: "inline-flex", gap: 4, alignItems: "center" }}>
-                    <Icon name="shield" sm /> موثّق: الهوية والمؤهل
+                    <Icon name="shield" sm /> {t("Verified: identity and qualifications")}
                   </span>
                 </div>
               </div>
             </div>
 
             <div className="card box">
-              <h2>عن الأستاذ</h2>
-              <p>{t.bio}</p>
+              <h2>{t("About the teacher")}</h2>
+              <p>{teacher.bio}</p>
               <ul className="ul" style={{ marginTop: 16 }}>
-                {t.education && (
+                {teacher.education && (
                   <li>
                     <Icon name="book" sm />
-                    <span>{t.education}</span>
+                    <span>{teacher.education}</span>
                   </li>
                 )}
-                {t.liveSchedule && (
+                {teacher.liveSchedule && (
                   <li>
                     <Icon name="live" sm />
-                    <span>حصص مباشرة: {t.liveSchedule}</span>
+                    <span>
+                      {t("Live classes:")} {teacher.liveSchedule}
+                    </span>
                   </li>
                 )}
               </ul>
@@ -107,17 +118,17 @@ export default async function TeacherPage({ params }: { params: Params }) {
 
             <div className="card box">
               <div className="ph2" style={{ marginBottom: 14 }}>
-                <h2 style={{ margin: 0 }}>المحتوى</h2>
+                <h2 style={{ margin: 0 }}>{t("Content")}</h2>
                 <span className="muted" style={{ fontSize: 13 }}>
-                  {sub ? "إنت مشترك، كل المواد مفتوحة" : "الدروس المجانية مفتوحة للتجربة"}
+                  {sub ? t("You're subscribed. All lessons are open.") : t("Free lessons are open to try.")}
                 </span>
               </div>
-              {t.units.map((u, ui) => (
+              {teacher.units.map((u, ui) => (
                 <details className="unit" key={u.id} open={ui === 0}>
                   <summary>
                     <span>{u.title}</span>
                     <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}>
-                      {u.lessons.length} مواد
+                      {t("{n} items", { n: u.lessons.length })}
                     </span>
                   </summary>
                   {u.lessons.map((l) => {
@@ -128,11 +139,11 @@ export default async function TeacherPage({ params }: { params: Params }) {
                         <span className="t">
                           <b>{l.title}</b>
                           <span>
-                            {TYPE_LABEL[l.type]} · {l.meta}
+                            {typeLabel(lang, l.type)} · {l.meta}
                           </span>
                         </span>
                         {l.isFree && !sub ? (
-                          <span className="pill p-ok">مجاني</span>
+                          <span className="pill p-ok">{t("Free")}</span>
                         ) : open ? null : (
                           <span className="muted">
                             <Icon name="lock" sm />
@@ -156,11 +167,11 @@ export default async function TeacherPage({ params }: { params: Params }) {
 
             <div className="card box">
               <div className="ph2">
-                <h2 style={{ margin: 0 }}>التقييمات</h2>
-                <Stars value={t.rating} />
+                <h2 style={{ margin: 0 }}>{t("Reviews")}</h2>
+                <Stars value={teacher.rating} />
               </div>
-              {sub && <ReviewForm teacherId={t.id} mine={mine} />}
-              {reviews.length === 0 && <p className="muted">ما في تقييمات لسا. أول المشتركين بيقدروا يقيّموا.</p>}
+              {sub && <ReviewForm teacherId={teacher.id} mine={mine} />}
+              {reviews.length === 0 && <p className="muted">{t("No reviews yet. Subscribed students can be the first.")}</p>}
               {reviews.map((r, i) => (
                 <div className="rev" key={`${r.author}-${i}`}>
                   <div className="h">
@@ -185,53 +196,53 @@ export default async function TeacherPage({ params }: { params: Params }) {
               {sub ? (
                 <>
                   <span className="pill p-ok" style={{ justifySelf: "start" }}>
-                    <Icon name="check" sm /> مشترك
+                    <Icon name="check" sm /> {t("Subscribed")}
                   </span>
-                  <h3 style={{ fontSize: 19 }}>اشتراكك فعّال لحد {fmtDate(sub.endsOn)}</h3>
+                  <h3 style={{ fontSize: 19 }}>{t("Your subscription is active until {date}", { date: fmtDate(lang, sub.endsOn) })}</h3>
                   <Link className="btn btn-pri" href="/student/materials">
-                    افتح موادّي
+                    {t("Open my materials")}
                   </Link>
                 </>
               ) : (
                 <>
-                  <h3 style={{ fontSize: 19 }}>اشترك مع أ. {first}</h3>
+                  <h3 style={{ fontSize: 19 }}>{t("Subscribe with {name}", { name: first })}</h3>
                   <div className="opt">
                     <span className="t">
-                      <b>شهري</b>
-                      <span>30 يوم من التفعيل</span>
+                      <b>{t("Monthly")}</b>
+                      <span>{t("30 days from activation")}</span>
                     </span>
-                    <span className="pr num">{t.priceMonth} د.أ</span>
+                    <span className="pr num">{t("{n} JOD", { n: teacher.priceMonth })}</span>
                   </div>
                   <div className="opt">
                     <span className="t">
-                      <b>فصلي (3 شهور)</b>
-                      <span>وفّر {t.priceMonth * 3 - t.priceTerm} د.أ</span>
+                      <b>{t("Term (3 months)")}</b>
+                      <span>{t("Save {n} JOD", { n: teacher.priceMonth * 3 - teacher.priceTerm })}</span>
                     </span>
-                    <span className="pr num">{t.priceTerm} د.أ</span>
+                    <span className="pr num">{t("{n} JOD", { n: teacher.priceTerm })}</span>
                   </div>
                   <Link className="btn btn-pri" href={session ? "/student/redeem" : "/login?next=/student/redeem"}>
-                    عندي كود تفعيل
+                    {t("I have an activation code")}
                   </Link>
                   <p className="muted" style={{ fontSize: 13, textAlign: "center" }}>
-                    ادفع للأستاذ واطلب منه كود تفعيل. الدفع الإلكتروني جاي قريبًا.
+                    {t("Pay your teacher and ask them for an activation code. Online payment is coming soon.")}
                   </p>
                 </>
               )}
             </div>
             <div className="card buy">
-              <b style={{ fontFamily: "var(--f-display)" }}>مع الاشتراك بتحصل على</b>
+              <b style={{ fontFamily: "var(--f-display)" }}>{t("With your subscription you get")}</b>
               <ul className="ul">
                 <li>
                   <Icon name="check" sm />
-                  <span>كل الفيديوهات والملخصات وأوراق العمل</span>
+                  <span>{t("All videos, notes and worksheets")}</span>
                 </li>
                 <li>
                   <Icon name="check" sm />
-                  <span>حصص مباشرة وتسجيلاتها</span>
+                  <span>{t("Live classes and their recordings")}</span>
                 </li>
                 <li>
                   <Icon name="check" sm />
-                  <span>اختبارات بعد كل وحدة</span>
+                  <span>{t("Quizzes after each unit")}</span>
                 </li>
               </ul>
             </div>

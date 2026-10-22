@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ICONS } from "@/components/icons";
+import { dataLabel, fmtDate as fmtDateFor, makeT, type Lang } from "@/lib/i18n";
 import type { LessonType, Teacher } from "@/lib/types";
 
 export function Icon({ name, sm }: { name: string; sm?: boolean }) {
@@ -14,9 +15,9 @@ export function Avatar({ t, size = 48 }: { t: Pick<Teacher, "color" | "initial">
   );
 }
 
-export function Verified() {
+export function Verified({ title }: { title: string }) {
   return (
-    <span className="vbadge" title="أستاذ موثّق: تم التحقق من الهوية والمؤهل">
+    <span className="vbadge" title={title}>
       <Icon name="check" />
     </span>
   );
@@ -33,7 +34,13 @@ export function Stars({ value }: { value: number }) {
 
 export const fmt = (n: number) => n.toLocaleString("en-US");
 
-export const TYPE_LABEL: Record<LessonType, string> = { video: "فيديو", pdf: "ملف PDF", quiz: "اختبار", live: "حصة مباشرة" };
+export const fmtDate = fmtDateFor;
+
+export function typeLabel(lang: Lang, type: LessonType): string {
+  const t = makeT(lang);
+  const labels: Record<LessonType, string> = { video: t("Video"), pdf: t("PDF"), quiz: t("Quiz"), live: t("Live class") };
+  return labels[type];
+}
 
 export function LessonIcon({ type }: { type: LessonType }) {
   return (
@@ -43,38 +50,41 @@ export function LessonIcon({ type }: { type: LessonType }) {
   );
 }
 
-export function TeacherCard({ t }: { t: Teacher }) {
+export function TeacherCard({ t: teacher, lang }: { t: Teacher; lang: Lang }) {
+  const t = makeT(lang);
   return (
-    <Link href={`/${t.slug}`} className="card tc" aria-label={`صفحة أ. ${t.name}`}>
+    <Link href={`/${teacher.slug}`} className="card tc" aria-label={t("Teacher page: {name}", { name: teacher.name })}>
       <div className="top">
-        <Avatar t={t} size={54} />
+        <Avatar t={teacher} size={54} />
         <div style={{ minWidth: 0 }}>
           <h3>
-            أ. {t.name}
-            {t.verified && <Verified />}
+            {t("Teacher")} {teacher.name}
+            {teacher.verified && <Verified title={t("Verified: identity and qualification checked")} />}
           </h3>
           <div className="meta">
-            {t.subject} · {t.grade}
+            {dataLabel(lang, teacher.subject)} · {dataLabel(lang, teacher.grade)}
           </div>
         </div>
       </div>
-      <p className="hl">{t.headline}</p>
+      <p className="hl">{teacher.headline}</p>
       <div className="meta" style={{ gap: 14 }}>
-        <Stars value={t.rating} />
-        <span>({t.reviewCount} تقييم)</span>
+        <Stars value={teacher.rating} />
+        <span>({t("{n} reviews", { n: teacher.reviewCount })})</span>
         <span style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
           <Icon name="pin" sm />
-          {t.city}
+          {dataLabel(lang, teacher.city)}
         </span>
       </div>
       <div className="foot">
         <span className="price num">
-          {t.priceMonth} د.أ <small>/ شهر</small>
+          {teacher.priceMonth} JOD <small>/ {t("month")}</small>
         </span>
-        {t.badge ? <span className="pill p-ok">{t.badge}</span> : <span className="pill p-info">{fmt(t.studentCount)} طالب</span>}
+        {teacher.badge ? (
+          <span className="pill p-ok">{teacher.badge}</span>
+        ) : (
+          <span className="pill p-info">{t("{n} students", { n: fmt(teacher.studentCount) })}</span>
+        )}
       </div>
     </Link>
   );
 }
-
-export { fmtDate } from "@/lib/format";

@@ -1,43 +1,46 @@
 import Link from "next/link";
+import { LangSwitch } from "@/components/lang-switch";
 import { DEMO_MODE } from "@/lib/env";
 import { getSession } from "@/lib/session";
+import { getT } from "@/lib/i18n-server";
 
 export async function SiteNav({ active }: { active?: "browse" }) {
   const s = await getSession();
-  const home = s?.role === "teacher" ? "/teacher" : "/student";
+  const t = await getT();
   return (
     <>
       {DEMO_MODE && (
         <div className="demo gut">
           <div className="wrap">
-            <span className="tag">نسخة تجريبية ببيانات نموذجية. كود الدخول لأي رقم: 482913</span>
+            <span className="tag">{t("Demo version with sample data. Login code for any number: 482913")}</span>
           </div>
         </div>
       )}
       <header className="nav gut">
         <div className="wrap">
-          <Link href="/" className="logo" aria-label="حِصّة، الصفحة الرئيسية">
-            <span className="mk">ح</span>حِصّة
+          <Link href="/" className="logo" aria-label={t("Hessa, home page")}>
+            <span className="mk">ح</span>Hessa
           </Link>
           <nav className="nav-links">
             <Link href="/teachers" className={active === "browse" ? "on" : ""}>
-              الأساتذة
+              {t("Teachers")}
             </Link>
-            <Link href="/#how">كيف بتشتغل</Link>
-            <Link href="/#teachers-band">للأساتذة</Link>
+            <Link href="/#how">{t("How it works")}</Link>
+            <Link href="/#teachers-band">{t("For teachers")}</Link>
           </nav>
           <span className="sp" />
+          <LangSwitch />
           {s ? (
-            <Link href={home} className="btn btn-pri btn-sm">
-              حسابي
+            <Link href={s.role === "teacher" ? "/teacher" : "/student"} className="btn btn-pri btn-sm">
+              {t("My account")}
             </Link>
           ) : (
             <>
               <Link href="/login?as=teacher" className="btn btn-ghost btn-sm">
-                دخول الأساتذة
+                {t("Teacher sign in")}
               </Link>
               <Link href="/login" className="btn btn-pri btn-sm">
-                دخول الطلاب
+                {t("Student sign in")}
               </Link>
             </>
           )}
@@ -47,7 +50,8 @@ export async function SiteNav({ active }: { active?: "browse" }) {
   );
 }
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const t = await getT();
   return (
     <footer className="site gut">
       <div className="wrap">
@@ -56,29 +60,31 @@ export function SiteFooter() {
             <span className="mk" style={{ width: 34, height: 34, fontSize: 18 }}>
               ح
             </span>
-            حِصّة
+            Hessa
           </span>
-          <p>منصة بتجمع الأستاذ وطلابه بمكان واحد: مواد، حصص مباشرة، اختبارات، واشتراكات.</p>
+          <p>
+            {t("A platform that brings teachers and their students together in one place: lessons, live classes, quizzes and subscriptions.")}
+          </p>
         </div>
         <div className="cols">
           <div>
-            <h4>للطلاب</h4>
-            <Link href="/teachers">تصفّح الأساتذة</Link>
-            <Link href="/#faq">الأسئلة الشائعة</Link>
+            <h4>{t("For students")}</h4>
+            <Link href="/teachers">{t("Browse teachers")}</Link>
+            <Link href="/#faq">{t("FAQ")}</Link>
           </div>
           <div>
-            <h4>للأساتذة</h4>
-            <Link href="/login?as=teacher">ادخل على لوحتك</Link>
-            <Link href="/#teachers-band">الأسعار والعمولة</Link>
+            <h4>{t("For teachers")}</h4>
+            <Link href="/login?as=teacher">{t("Open your dashboard")}</Link>
+            <Link href="/#teachers-band">{t("Prices and commission")}</Link>
           </div>
           <div>
-            <h4>قانوني</h4>
-            <Link href="/privacy">سياسة الخصوصية</Link>
-            <Link href="/terms">شروط الاستخدام</Link>
+            <h4>{t("Legal")}</h4>
+            <Link href="/privacy">{t("Privacy policy")}</Link>
+            <Link href="/terms">{t("Terms of use")}</Link>
           </div>
           <div>
-            <h4>تواصل</h4>
-            <span>عمّان، الأردن</span>
+            <h4>{t("Contact")}</h4>
+            <span>{t("Amman, Jordan")}</span>
             <span>support@hessa.jo</span>
           </div>
         </div>

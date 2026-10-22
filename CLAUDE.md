@@ -10,3 +10,8 @@
 - Mutations are server actions in `app/actions/*`, returning `{ ok?, error? }` for `useActionState`.
 - Security lives in the database: RLS policies and `protect_fields` in `supabase/migrations/0001_init.sql`. New tables need RLS on. New migrations go in a new numbered file.
 - Before pushing: `npm run typecheck && npm run build`.
+
+## Language
+- English is the source and default language. Write every UI string as `t("English text")`; Arabic lives in `lib/i18n/ar.ts`, keyed by the English text. A missing key falls back to English.
+- The language is stored in the `hessa_lang` cookie (`en` or `ar`), set from Settings or the nav switch. Sample data (teacher names, bios, lesson titles) stays in Arabic.
+- Keep placeholders such as `{name}` identical in the key and the translation.

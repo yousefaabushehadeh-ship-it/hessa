@@ -1,22 +1,28 @@
+import { dataLabel, makeT, type Lang, type T } from "@/lib/i18n";
 import { DEMO_MODE } from "@/lib/env";
 import { REVIEWS } from "@/lib/demo-data";
 import { demo2 } from "@/lib/demo-store";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { Review } from "@/lib/types";
 
-/** "قبل 3 أيام" style label. */
-export function ago(iso: string, now = Date.now()) {
+/** "3 days ago" style label. */
+export function ago(iso: string, t: T, now = Date.now()) {
   const days = Math.floor((now - new Date(iso).getTime()) / 864e5);
-  if (days < 1) return "اليوم";
-  if (days === 1) return "أمس";
-  if (days < 7) return `قبل ${days} أيام`;
-  if (days < 30) return Math.floor(days / 7) === 1 ? "قبل أسبوع" : `قبل ${Math.floor(days / 7)} أسابيع`;
-  if (days < 365) return Math.floor(days / 30) === 1 ? "قبل شهر" : `قبل ${Math.floor(days / 30)} شهور`;
-  return "قبل أكثر من سنة";
+  if (days < 1) return t("Today");
+  if (days === 1) return t("Yesterday");
+  if (days < 7) return t("{n} days ago", { n: days });
+  if (days < 14) return t("1 week ago");
+  if (days < 30) return t("{n} weeks ago", { n: Math.floor(days / 7) });
+  if (days < 60) return t("1 month ago");
+  if (days < 365) return t("{n} months ago", { n: Math.floor(days / 30) });
+  return t("Over a year ago");
 }
 
-export async function getReviews(teacherId: string): Promise<Review[]> {
-  if (DEMO_MODE) return [...(demo2.reviews[teacherId] ?? []), ...REVIEWS];
+export async function getReviews(teacherId: string, lang: Lang = "en"): Promise<Review[]> {
+  const t = makeT(lang);
+  if (DEMO_MODE) {
+    return [...(demo2.reviews[teacherId] ?? []), ...REVIEWS].map((r) => ({ ...r, when: dataLabel(lang, r.when) }));
+  }
   const supabase = await supabaseServer();
   const { data } = await supabase
     .from("reviews")
@@ -25,7 +31,7 @@ export async function getReviews(teacherId: string): Promise<Review[]> {
     .eq("hidden", false)
     .order("created_at", { ascending: false })
     .limit(20);
-  return (data ?? []).map((r) => ({ author: r.author_name, when: ago(r.created_at), stars: r.stars, body: r.body }));
+  return (data ?? []).map((r) => ({ author: r.author_name, when: ago(r.created_at, t), stars: r.stars, body: r.body }));
 }
 
 export async function getMyReview(userId: string, teacherId: string): Promise<{ stars: number; body: string } | null> {

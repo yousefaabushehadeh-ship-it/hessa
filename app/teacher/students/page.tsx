@@ -1,31 +1,34 @@
 import { TopBar } from "@/components/dash-shell";
 import { fmtDate } from "@/components/ui";
+import { getLang, getT } from "@/lib/i18n-server";
 import { listMyStudents } from "@/lib/students";
 import { myTeacher } from "@/lib/teacher-context";
 
 export default async function Students() {
-  const t = await myTeacher();
-  const rows = await listMyStudents(t);
-  const first = t.name.split(" ")[0];
+  const t = await getT();
+  const lang = await getLang();
+  const x = await myTeacher();
+  const rows = await listMyStudents(x);
+  const first = x.name.split(" ")[0];
   const behind = rows.filter((r) => r.progress < 30).length;
   const soon = rows.filter((r) => new Date(r.endsOn).getTime() - Date.now() < 7 * 864e5).length;
   return (
     <>
-      <TopBar title="الطلاب" sub="مين مشترك، وين وصل، ومين محتاج متابعة." who={`أ. ${first}`} initial={t.initial} color={t.color} />
+      <TopBar title={t("Students")} sub={t("Who is subscribed, how far they've got, and who needs a follow-up.")} who={`${t("Teacher")} ${first}`} initial={x.initial} color={x.color} />
       <div className="kpis">
         <div className="card stat">
-          <div className="lbl">مشتركين حاليًا</div>
+          <div className="lbl">{t("Current subscribers")}</div>
           <div className="v">{rows.length}</div>
         </div>
         <div className="card stat">
-          <div className="lbl">محتاجين متابعة</div>
+          <div className="lbl">{t("Need a follow-up")}</div>
           <div className="v" style={{ color: behind ? "var(--warn-fg)" : undefined }}>
             {behind}
           </div>
-          <div className="sub">تقدّمهم أقل من 30%</div>
+          <div className="sub">{t("Progress under 30%")}</div>
         </div>
         <div className="card stat">
-          <div className="lbl">اشتراكات بتخلص هالأسبوع</div>
+          <div className="lbl">{t("Subscriptions ending this week")}</div>
           <div className="v">{soon}</div>
         </div>
       </div>
@@ -34,10 +37,10 @@ export default async function Students() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>الطالب</th>
-                <th className="hide-s">الاشتراك</th>
-                <th>التقدّم</th>
-                <th className="hide-s">آخر اختبار</th>
+                <th>{t("Student")}</th>
+                <th className="hide-s">{t("Subscription")}</th>
+                <th>{t("Progress")}</th>
+                <th className="hide-s">{t("Last quiz")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -45,7 +48,7 @@ export default async function Students() {
               {rows.length === 0 && (
                 <tr>
                   <td colSpan={5} className="empty">
-                    ما في طلاب مشتركين لسا. أنشئ أكواد تفعيل وابعثها لطلابك.
+                    {t("No subscribed students yet. Create activation codes and send them to your students.")}
                   </td>
                 </tr>
               )}
@@ -55,7 +58,7 @@ export default async function Students() {
                     <b style={{ fontFamily: "var(--f-display)", fontWeight: 600 }}>{r.name}</b>
                   </td>
                   <td className="muted hide-s">
-                    {r.plan === "term" ? "فصلي" : "شهري"} · لحد {fmtDate(r.endsOn)}
+                    {r.plan === "term" ? t("Term") : t("Monthly")} · {t("until {date}", { date: fmtDate(lang, r.endsOn) })}
                   </td>
                   <td style={{ minWidth: 120 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -68,7 +71,7 @@ export default async function Students() {
                     </div>
                   </td>
                   <td className="muted hide-s num">{r.lastQuiz ?? "—"}</td>
-                  <td>{r.progress < 30 ? <span className="pill p-warn">تابعه</span> : <span className="pill p-ok">منتظم</span>}</td>
+                  <td>{r.progress < 30 ? <span className="pill p-warn">{t("Follow up")}</span> : <span className="pill p-ok">{t("On track")}</span>}</td>
                 </tr>
               ))}
             </tbody>

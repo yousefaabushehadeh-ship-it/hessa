@@ -2,15 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { markDone } from "@/app/actions/student";
 import { QuizRunner } from "@/components/quiz-runner";
-import { Icon, LessonIcon, TYPE_LABEL } from "@/components/ui";
+import { Icon, LessonIcon, typeLabel } from "@/components/ui";
 import { BUNNY_ENABLED, embedUrl } from "@/lib/bunny";
-import { getLastAttempt, getQuizForStudent } from "@/lib/quiz";
 import { DEMO_MODE } from "@/lib/env";
 import { findLesson, getCompletedLessons, getMySubscriptions } from "@/lib/data";
+import { getLang, getT } from "@/lib/i18n-server";
+import { getLastAttempt, getQuizForStudent } from "@/lib/quiz";
 import { requireRole } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 export default async function LessonView({ params }: { params: Promise<{ id: string }> }) {
+  const t = await getT();
+  const lang = await getLang();
   const { id } = await params;
   const s = await requireRole("student");
   const found = await findLesson(id);
@@ -23,15 +26,13 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
   if (!allowed) {
     return (
       <div className="card center-card">
-        <h1 style={{ fontSize: 22 }}>هالدرس للمشتركين</h1>
-        <p className="muted">
-          اشترك مع أ. {teacher.name} عشان تنفتح كل موادّه. اطلب منه كود تفعيل.
-        </p>
+        <h1 style={{ fontSize: 22 }}>{t("This lesson is for subscribers")}</h1>
+        <p className="muted">{t("Subscribe with {name} to open all their lessons. Ask them for an activation code.", { name: teacher.name })}</p>
         <Link className="btn btn-pri" href="/student/redeem">
-          عندي كود
+          {t("I have a code")}
         </Link>
         <Link className="btn btn-ghost" href={`/${teacher.slug}`}>
-          صفحة الأستاذ
+          {t("Teacher page")}
         </Link>
       </div>
     );
@@ -55,11 +56,11 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
       <div className="top">
         <div className="hi">
           <Link className="link" href="/student/materials">
-            رجوع للمواد
+            <Icon name="arrow" sm /> {t("Back to materials")}
           </Link>
           <h1 style={{ marginTop: 8 }}>{lesson.title}</h1>
           <p>
-            أ. {teacher.name} · {unit.title} · {TYPE_LABEL[lesson.type]} · {lesson.meta}
+            {t("Teacher")} {teacher.name} · {unit.title} · {typeLabel(lang, lesson.type)} · {lesson.meta}
           </p>
         </div>
         <LessonIcon type={lesson.type} />
@@ -70,50 +71,50 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
           <QuizRunner lessonId={lesson.id} questions={quiz} last={last} />
         </div>
       ) : (
-      <div className="card panel">
-        <div className={videoUrl ? "reader video" : "reader"}>
-          {videoUrl ? (
-            <iframe src={videoUrl} title={lesson.title} allow="accelerometer; gyroscope; encrypted-media; picture-in-picture" allowFullScreen />
-          ) : fileUrl ? (
-            <iframe src={`${fileUrl}#toolbar=0`} title={lesson.title} />
-          ) : (
-            <div className="empty" style={{ minHeight: 320, display: "grid", placeItems: "center" }}>
-              {lesson.type === "video"
-                ? DEMO_MODE || !BUNNY_ENABLED
-                  ? "الفيديو بيشتغل هون بعد ربط Bunny Stream. بالنسخة التجريبية ما في فيديوهات."
-                  : "الأستاذ لسا ما رفع الفيديو."
-                : lesson.type === "live"
-                  ? `الحصة المباشرة: ${lesson.meta}. رابط الدخول بيظهر هون قبل الموعد.`
-                  : lesson.type === "quiz"
-                    ? "الأستاذ لسا ما أضاف أسئلة لهالاختبار."
-                    : DEMO_MODE
-                      ? "بالنسخة التجريبية ما في ملفات مرفوعة. لما الأستاذ يرفع PDF بيظهر هون."
-                      : "الأستاذ لسا ما رفع الملف."}
+        <div className="card panel">
+          <div className={videoUrl ? "reader video" : "reader"}>
+            {videoUrl ? (
+              <iframe src={videoUrl} title={lesson.title} allow="accelerometer; gyroscope; encrypted-media; picture-in-picture" allowFullScreen />
+            ) : fileUrl ? (
+              <iframe src={`${fileUrl}#toolbar=0`} title={lesson.title} />
+            ) : (
+              <div className="empty" style={{ minHeight: 320, display: "grid", placeItems: "center" }}>
+                {lesson.type === "video"
+                  ? DEMO_MODE || !BUNNY_ENABLED
+                    ? t("Video plays here once Bunny Stream is connected. The demo has no videos.")
+                    : t("The teacher hasn't uploaded this video yet.")
+                  : lesson.type === "live"
+                    ? t("Live class: {meta}. The join link appears here before the start time.", { meta: lesson.meta })
+                    : lesson.type === "quiz"
+                      ? t("The teacher hasn't added questions to this quiz yet.")
+                      : DEMO_MODE
+                        ? t("The demo has no uploaded files. When a teacher uploads a PDF, it appears here.")
+                        : t("The teacher hasn't uploaded the file yet.")}
+              </div>
+            )}
+            <div className="wm" aria-hidden="true">
+              {Array.from({ length: 12 }, (_, i) => (
+                <span key={i}>{mark}</span>
+              ))}
             </div>
-          )}
-          <div className="wm" aria-hidden="true">
-            {Array.from({ length: 12 }, (_, i) => (
-              <span key={i}>{mark}</span>
-            ))}
+          </div>
+          <div style={{ display: "flex", gap: 10, marginTop: 16, alignItems: "center", flexWrap: "wrap" }}>
+            {done ? (
+              <span className="pill p-ok">
+                <Icon name="check" sm /> {t("You finished this lesson")}
+              </span>
+            ) : (
+              <form action={doneAction}>
+                <button className="btn btn-pri btn-sm">
+                  <Icon name="check" sm /> {t("Mark as finished")}
+                </button>
+              </form>
+            )}
+            <span className="muted" style={{ fontSize: 13 }}>
+              {t("This material has a watermark with your name. Sharing it outside the platform is not allowed.")}
+            </span>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 10, marginTop: 16, alignItems: "center", flexWrap: "wrap" }}>
-          {done ? (
-            <span className="pill p-ok">
-              <Icon name="check" sm /> خلّصت هالدرس
-            </span>
-          ) : (
-            <form action={doneAction}>
-              <button className="btn btn-pri btn-sm">
-                <Icon name="check" sm /> خلّصت هالدرس
-              </button>
-            </form>
-          )}
-          <span className="muted" style={{ fontSize: 13 }}>
-            المادة عليها علامة مائية باسمك. مشاركتها برا المنصة ممنوعة.
-          </span>
-        </div>
-      </div>
       )}
     </>
   );

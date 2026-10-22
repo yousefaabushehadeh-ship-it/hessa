@@ -1,5 +1,6 @@
 "use server";
 
+import { getT } from "@/lib/i18n-server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DEMO_MODE, DEMO_OTP, SITE_URL } from "@/lib/env";
@@ -28,25 +29,27 @@ async function setDemoSession(s: Session) {
 }
 
 export async function sendOtp(_prev: LoginState, fd: FormData): Promise<LoginState> {
+  const t = await getT();
   const phone = cleanPhone(fd.get("phone"));
   const as = fd.get("as") === "teacher" ? "teacher" : "student";
   const next = String(fd.get("next") ?? "") || undefined;
-  if (!PHONE_RE.test(phone)) return { step: "phone", as, next, error: "اكتب رقم أردني صحيح بيبدأ بـ 77 أو 78 أو 79." };
-  if (!fd.get("agree")) return { step: "phone", phone, as, next, error: "لازم توافق على الشروط وسياسة الخصوصية." };
+  if (!PHONE_RE.test(phone)) return { step: "phone", as, next, error: t("Enter a valid Jordanian number starting with 77, 78 or 79.") };
+  if (!fd.get("agree")) return { step: "phone", phone, as, next, error: t("You must agree to the terms and privacy policy.") };
   if (!DEMO_MODE) {
     const supabase = await supabaseServer();
     const { error } = await supabase.auth.signInWithOtp({ phone: `+962${phone}` });
-    if (error) return { step: "phone", phone, as, next, error: "ما قدرنا نبعث الكود. جرّب كمان شوي." };
+    if (error) return { step: "phone", phone, as, next, error: t("We couldn't send the code. Please try again shortly.") };
   }
   return { step: "otp", phone, as, next };
 }
 
 export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginState> {
+  const t = await getT();
   const token = String(fd.get("code") ?? "").replace(/\D/g, "");
-  if (token.length !== 6) return { ...prev, error: "الكود من 6 أرقام." };
+  if (token.length !== 6) return { ...prev, error: t("The code has 6 digits.") };
 
   if (DEMO_MODE) {
-    if (token !== DEMO_OTP) return { ...prev, error: "الكود غلط. بنسخة العرض الكود هو 482913." };
+    if (token !== DEMO_OTP) return { ...prev, error: t("Wrong code. In the demo, the code is 482913.") };
     if (prev.as === "teacher") {
       const t = TEACHERS.find((x) => x.id === DEMO_TEACHER_ID)!;
       await setDemoSession({ userId: "demo-teacher", role: "teacher", fullName: t.name, teacherId: t.id, consent: "not_needed" });
@@ -57,7 +60,7 @@ export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginSt
 
   const supabase = await supabaseServer();
   const { data, error } = await supabase.auth.verifyOtp({ phone: `+962${prev.phone}`, token, type: "sms" });
-  if (error || !data.user) return { ...prev, error: "الكود غلط أو انتهت صلاحيته." };
+  if (error || !data.user) return { ...prev, error: t("The code is wrong or has expired.") };
   const { data: profile } = await supabase.from("profiles").select("role, full_name, consent").eq("id", data.user.id).single();
   if (profile?.role === "teacher" || profile?.role === "admin") redirect("/teacher");
   if (!profile?.full_name) return { ...prev, step: "profile", error: undefined };
@@ -65,13 +68,14 @@ export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginSt
 }
 
 export async function completeProfile(prev: LoginState, fd: FormData): Promise<LoginState> {
+  const t = await getT();
   const fullName = String(fd.get("name") ?? "").trim();
   const grade = String(fd.get("grade") ?? "");
   const isMinor = fd.get("age") !== "adult";
   const parentPhone = cleanPhone(fd.get("parent"));
-  if (fullName.length < 3) return { ...prev, error: "اكتب اسمك الكامل." };
-  if (isMinor && !PHONE_RE.test(parentPhone)) return { ...prev, error: "اكتب رقم ولي الأمر صحيح." };
-  if (isMinor && parentPhone === prev.phone) return { ...prev, error: "رقم ولي الأمر لازم يكون غير رقمك." };
+  if (fullName.length < 3) return { ...prev, error: t("Enter your full name.") };
+  if (isMinor && !PHONE_RE.test(parentPhone)) return { ...prev, error: t("Enter a valid parent's number.") };
+  if (isMinor && parentPhone === prev.phone) return { ...prev, error: t("The parent's number must be different from yours.") };
 
   if (DEMO_MODE) {
     await setDemoSession({ userId: DEMO_STUDENT.id, role: "student", fullName, consent: isMinor ? "pending" : "not_needed" });
@@ -80,7 +84,7 @@ export async function completeProfile(prev: LoginState, fd: FormData): Promise<L
 
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { step: "phone", error: "انتهت الجلسة. ادخل من جديد." };
+  if (!auth.user) return { step: "phone", error: t("Your session has ended. Please sign in again.") };
   const uid = auth.user.id;
   await supabase.from("profiles").update({ full_name: fullName, grade, is_minor: isMinor, parent_phone: isMinor ? `+962${parentPhone}` : null }).eq("id", uid);
   if (!isMinor) {
@@ -89,13 +93,14 @@ export async function completeProfile(prev: LoginState, fd: FormData): Promise<L
     redirect(safeNext(prev.next));
   }
   const { error } = await supabase.from("parent_consents").insert({ student_id: uid, parent_phone: `+962${parentPhone}` });
-  if (error) return { ...prev, error: "صار خطأ وإحنا بنجهّز طلب الموافقة." };
+  if (error) return { ...prev, error: t("Something went wrong while preparing the approval request.") };
   // The student area shows the consent link until the parent approves.
   redirect("/student");
 }
 
 /** The link a student sends to their parent, while consent is pending. */
 export async function myConsentLink(): Promise<string | null> {
+  const t = await getT();
   if (DEMO_MODE) return `${SITE_URL}/consent/demo`;
   const supabase = await supabaseServer();
   const { data } = await supabase
@@ -109,6 +114,7 @@ export async function myConsentLink(): Promise<string | null> {
 }
 
 export async function approveConsent(token: string): Promise<boolean> {
+  const t = await getT();
   if (DEMO_MODE) {
     const s = await getSession();
     if (s) await setDemoSession({ ...s, consent: "approved" });
@@ -120,6 +126,7 @@ export async function approveConsent(token: string): Promise<boolean> {
 }
 
 export async function signOut() {
+  const t = await getT();
   if (DEMO_MODE) {
     const jar = await cookies();
     jar.delete(DEMO_COOKIE);

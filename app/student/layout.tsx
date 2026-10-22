@@ -5,41 +5,43 @@ import { myConsentLink } from "@/app/actions/auth";
 import { DashShell, type NavItem } from "@/components/dash-shell";
 import { SignOut } from "@/components/sign-out";
 import { DEMO_MODE } from "@/lib/env";
+import { getT } from "@/lib/i18n-server";
 import { requireRole } from "@/lib/session";
 
-const NAV: NavItem[] = [
-  { href: "/student", label: "الرئيسية", icon: "home" },
-  { href: "/student/materials", label: "المواد", icon: "book" },
-  { href: "/student/redeem", label: "تفعيل كود", icon: "card" },
-  { href: "/teachers", label: "الأساتذة", icon: "users" },
-];
-
 export default async function StudentLayout({ children }: { children: ReactNode }) {
+  const t = await getT();
   const s = await requireRole("student");
   if (!s.fullName) redirect("/login");
   const link = s.consent === "pending" ? await myConsentLink() : null;
+  const NAV: NavItem[] = [
+    { href: "/student", label: t("Home"), icon: "home" },
+    { href: "/student/materials", label: t("Materials"), icon: "book" },
+    { href: "/student/redeem", label: t("Activate a code"), icon: "card" },
+    { href: "/teachers", label: t("Teachers"), icon: "users" },
+    { href: "/settings", label: t("Settings"), icon: "gear" },
+  ];
   return (
     <DashShell nav={NAV} footer={<SignOut />}>
       {s.consent === "pending" ? (
         <div className="card center-card">
-          <h1 style={{ fontSize: 24 }}>بانتظار موافقة ولي الأمر</h1>
-          <p className="muted">ابعث هالرابط لولي أمرك. أول ما يوافق، حسابك بيتفعّل وكل موادّك بتنفتح هون.</p>
+          <h1 style={{ fontSize: 24 }}>{t("Waiting for your parent's approval")}</h1>
+          <p className="muted">{t("Send this link to your parent. Once they approve, your account is active and all your materials open here.")}</p>
           {link && (
             <>
-              <input className="field num" dir="ltr" readOnly value={link} aria-label="رابط الموافقة" />
+              <input className="field num" dir="ltr" readOnly value={link} aria-label={t("Approval link")} />
               <a
                 className="btn btn-pri"
                 target="_blank"
                 rel="noopener"
-                href={`https://wa.me/?text=${encodeURIComponent(`مرحبا، بدي أفتح حساب على منصة حِصّة للدراسة مع أساتذتي. وافق من هون: ${link}`)}`}
+                href={`https://wa.me/?text=${encodeURIComponent(t("Hello, I want to open an account on Hessa to study with my teachers. Approve here: {url}", { url: link }))}`}
               >
-                ابعثه على الواتساب
+                {t("Send on WhatsApp")}
               </a>
             </>
           )}
           {DEMO_MODE && (
             <Link className="btn btn-ghost" href="/consent/demo">
-              (تجربة) افتح صفحة الموافقة كأنك ولي الأمر
+              {t("(Demo) Open the approval page as a parent")}
             </Link>
           )}
         </div>
