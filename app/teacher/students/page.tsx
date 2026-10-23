@@ -48,7 +48,7 @@ export default async function Students() {
               {rows.length === 0 && (
                 <tr>
                   <td colSpan={5} className="empty">
-                    {t("No subscribed students yet. Create activation codes and send them to your students.")}
+                    {t("No subscribed students yet. Create access codes and send them to your students.")}
                   </td>
                 </tr>
               )}

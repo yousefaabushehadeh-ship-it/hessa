@@ -63,7 +63,7 @@ export default async function StudentHome() {
             <div className="ph2">
               <h2>{t("Pick up where you left off")}</h2>
               <Link className="link" href="/student/materials">
-                {t("All materials")}
+                {t("All study materials")}
               </Link>
             </div>
             {nextUp.length ? (

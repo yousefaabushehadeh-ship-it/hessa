@@ -35,7 +35,7 @@ export async function saveVideoLesson(input: { unitId: string; title: string; me
   if (!(await videoBelongsTo(input.videoId, id))) return { error: t("This video isn't yours.") };
   const supabase = await supabaseServer();
   const { data: unit } = await supabase.from("units").select("id").eq("id", input.unitId).eq("teacher_id", id).maybeSingle();
-  if (!unit) return { error: t("Choose the unit.") };
+  if (!unit) return { error: t("Choose the chapter.") };
   const { count } = await supabase.from("lessons").select("id", { count: "exact", head: true }).eq("unit_id", input.unitId);
   const { error } = await supabase.from("lessons").insert({
     unit_id: input.unitId,

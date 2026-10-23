@@ -16,7 +16,8 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   // Signed in but never finished the profile step: pick up from there.
   const unfinished = s?.role === "student" && !s.fullName;
   if (s && !unfinished) redirect(s.role === "teacher" ? "/teacher" : "/student");
-  const as = sp.as === "teacher" ? "teacher" : "student";
+  // The demo has one student account, so teacher sign-in is only offered with real accounts.
+  const as = sp.as === "teacher" && !DEMO_MODE ? "teacher" : "student";
   return (
     <>
       <SiteNav />

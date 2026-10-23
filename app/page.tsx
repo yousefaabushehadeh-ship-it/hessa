@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteFooter, SiteNav } from "@/components/site";
 import { Avatar, Icon, TeacherCard } from "@/components/ui";
 import { SUBJECTS } from "@/lib/demo-data";
+import { DEMO_MODE } from "@/lib/env";
 import { listTeachers } from "@/lib/data";
 import { dataLabel } from "@/lib/i18n";
 import { getLang, getT } from "@/lib/i18n-server";
@@ -15,14 +16,14 @@ export default async function Home() {
   const FAQ: [string, string][] = [
     [
       t("How do I subscribe to a teacher?"),
-      t("Agree on a plan with the teacher and pay them directly. They give you an activation code, and all their lessons open as soon as you enter it. Online payments (CliQ and wallets) are coming soon."),
+      t("Agree on a plan with the teacher and pay them directly. They give you an access code, and all their lessons open as soon as you enter it. Online payments (CliQ and wallets) are coming soon."),
     ],
     [
       t("Why do you ask for a parent's approval?"),
       t("Most of our students are under 18, and Jordan's personal data protection law (No. 24 of 2023) requires clear consent. We send your parent a link, and they approve it in one tap."),
     ],
     [
-      t("How do you protect the teachers' materials?"),
+      t("How do you protect the teachers' study materials?"),
       t("Files are stored privately and open through a temporary link for subscribers only. Every file carries a watermark with the student's name."),
     ],
     [
@@ -41,7 +42,7 @@ export default async function Home() {
         <div className="wrap">
           <div>
             <span className="eyebrow">
-              <Icon name="check" sm /> {t("Built for Tawjihi students and their teachers in Jordan")}
+              <Icon name="check" sm /> {t("Built for students preparing for Jordan's Tawjihi national exam")}
             </span>
             <h1>
               {t("Your favorite teacher,")}
@@ -55,9 +56,11 @@ export default async function Home() {
               <Link className="btn btn-pri" href="/teachers">
                 <Icon name="search" sm /> {t("Browse teachers")}
               </Link>
-              <Link className="btn btn-ghost" href="/login?as=teacher">
-                {t("I'm a teacher. Open my page")}
-              </Link>
+              {!DEMO_MODE && (
+                <Link className="btn btn-ghost" href="/login?as=teacher">
+                  {t("I'm a teacher. Open my page")}
+                </Link>
+              )}
             </div>
             <div className="facts">
               <div>
@@ -194,7 +197,7 @@ export default async function Home() {
             <div>
               <h2>{t("A teacher? Your page, your students, your name.")}</h2>
               <p>
-                {t("Hessa isn't a marketplace that sells your content. You own your page, and we give you the tools: easy uploads, activation codes for your students, and watermarked files that protect your work.")}
+                {t("Hessa isn't a marketplace that sells your content. You own your page, and we give you the tools: easy uploads, access codes for your students, and watermarked files that protect your work.")}
               </p>
               <ul>
                 <li>
@@ -203,11 +206,11 @@ export default async function Home() {
                 </li>
                 <li>
                   <Icon name="check" sm />
-                  <span>{t("Organize your lessons into units and pick which ones are free to try")}</span>
+                  <span>{t("Organize your lessons into chapters and pick which ones are free to try")}</span>
                 </li>
                 <li>
                   <Icon name="check" sm />
-                  <span>{t("Create monthly or term activation codes in one click")}</span>
+                  <span>{t("Create monthly or term access codes in one click")}</span>
                 </li>
               </ul>
               <div style={{ marginTop: 26 }}>
