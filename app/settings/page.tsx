@@ -20,7 +20,7 @@ export default async function Settings() {
         ]
       : [
           { href: "/student", label: t("Home"), icon: "home" },
-          { href: "/student/materials", label: t("Materials"), icon: "book" },
+          { href: "/student/materials", label: t("Study materials"), icon: "book" },
           { href: "/student/redeem", label: t("Activate a code"), icon: "card" },
           { href: "/teachers", label: t("Teachers"), icon: "users" },
           { href: "/settings", label: t("Settings"), icon: "gear" },

@@ -15,7 +15,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const link = s.consent === "pending" ? await myConsentLink() : null;
   const NAV: NavItem[] = [
     { href: "/student", label: t("Home"), icon: "home" },
-    { href: "/student/materials", label: t("Materials"), icon: "book" },
+    { href: "/student/materials", label: t("Study materials"), icon: "book" },
     { href: "/student/redeem", label: t("Activate a code"), icon: "card" },
     { href: "/teachers", label: t("Teachers"), icon: "users" },
     { href: "/settings", label: t("Settings"), icon: "gear" },
@@ -25,7 +25,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
       {s.consent === "pending" ? (
         <div className="card center-card">
           <h1 style={{ fontSize: 24 }}>{t("Waiting for your parent's approval")}</h1>
-          <p className="muted">{t("Send this link to your parent. Once they approve, your account is active and all your materials open here.")}</p>
+          <p className="muted">{t("Send this link to your parent. Once they approve, your account is active and all your study materials open here.")}</p>
           {link && (
             <>
               <input className="field num" dir="ltr" readOnly value={link} aria-label={t("Approval link")} />

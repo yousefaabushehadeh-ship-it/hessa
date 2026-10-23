@@ -25,8 +25,8 @@ export async function SiteNav({ active }: { active?: "browse" }) {
             <Link href="/teachers" className={active === "browse" ? "on" : ""}>
               {t("Teachers")}
             </Link>
+            <Link href="/services">{t("Services")}</Link>
             <Link href="/#how">{t("How it works")}</Link>
-            <Link href="/#teachers-band">{t("For teachers")}</Link>
           </nav>
           <span className="sp" />
           <LangSwitch />
@@ -36,11 +36,11 @@ export async function SiteNav({ active }: { active?: "browse" }) {
             </Link>
           ) : (
             <>
-              <Link href="/login?as=teacher" className="btn btn-ghost btn-sm">
-                {t("Teacher sign in")}
+              <Link href="/login" className="btn btn-ghost btn-sm">
+                {t("Sign in")}
               </Link>
-              <Link href="/login" className="btn btn-pri btn-sm">
-                {t("Student sign in")}
+              <Link href="/signup" className="btn btn-pri btn-sm">
+                {t("Create account")}
               </Link>
             </>
           )}
@@ -74,7 +74,7 @@ export async function SiteFooter() {
           </div>
           <div>
             <h4>{t("For teachers")}</h4>
-            <Link href="/login?as=teacher">{t("Open your dashboard")}</Link>
+            {!DEMO_MODE && <Link href="/login?as=teacher">{t("Open your dashboard")}</Link>}
             <Link href="/#teachers-band">{t("Prices and commission")}</Link>
           </div>
           <div>

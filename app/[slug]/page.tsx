@@ -200,7 +200,7 @@ export default async function TeacherPage({ params }: { params: Params }) {
                   </span>
                   <h3 style={{ fontSize: 19 }}>{t("Your subscription is active until {date}", { date: fmtDate(lang, sub.endsOn) })}</h3>
                   <Link className="btn btn-pri" href="/student/materials">
-                    {t("Open my materials")}
+                    {t("Open my study materials")}
                   </Link>
                 </>
               ) : (
@@ -221,10 +221,10 @@ export default async function TeacherPage({ params }: { params: Params }) {
                     <span className="pr num">{t("{n} JOD", { n: teacher.priceTerm })}</span>
                   </div>
                   <Link className="btn btn-pri" href={session ? "/student/redeem" : "/login?next=/student/redeem"}>
-                    {t("I have an activation code")}
+                    {t("I have an access code")}
                   </Link>
                   <p className="muted" style={{ fontSize: 13, textAlign: "center" }}>
-                    {t("Pay your teacher and ask them for an activation code. Online payment is coming soon.")}
+                    {t("Pay your teacher and ask them for an access code. Online payment is coming soon.")}
                   </p>
                 </>
               )}
@@ -242,7 +242,7 @@ export default async function TeacherPage({ params }: { params: Params }) {
                 </li>
                 <li>
                   <Icon name="check" sm />
-                  <span>{t("Quizzes after each unit")}</span>
+                  <span>{t("Quizzes after each chapter")}</span>
                 </li>
               </ul>
             </div>

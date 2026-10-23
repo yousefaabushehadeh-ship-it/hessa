@@ -27,7 +27,7 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
     return (
       <div className="card center-card">
         <h1 style={{ fontSize: 22 }}>{t("This lesson is for subscribers")}</h1>
-        <p className="muted">{t("Subscribe with {name} to open all their lessons. Ask them for an activation code.", { name: teacher.name })}</p>
+        <p className="muted">{t("Subscribe with {name} to open all their lessons. Ask them for an access code.", { name: teacher.name })}</p>
         <Link className="btn btn-pri" href="/student/redeem">
           {t("I have a code")}
         </Link>
@@ -56,7 +56,7 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
       <div className="top">
         <div className="hi">
           <Link className="link" href="/student/materials">
-            <Icon name="arrow" sm /> {t("Back to materials")}
+            <Icon name="arrow" sm /> {t("Back to study materials")}
           </Link>
           <h1 style={{ marginTop: 8 }}>{lesson.title}</h1>
           <p>

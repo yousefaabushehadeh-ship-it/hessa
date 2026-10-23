@@ -14,9 +14,9 @@ async function dispatch(prev: LoginState, fd: FormData): Promise<LoginState> {
   return completeProfile(prev, fd);
 }
 
-export function LoginFlow({ as, next, demo, startAtProfile }: { as: "student" | "teacher"; next?: string; demo: boolean; startAtProfile?: boolean }) {
+export function LoginFlow({ as, next, demo, startAtProfile, signup }: { as: "student" | "teacher"; next?: string; demo: boolean; startAtProfile?: boolean; signup?: boolean }) {
   const t = useT();
-  const [state, action, pending] = useActionState(dispatch, { step: startAtProfile ? "profile" : "phone", as, next } as LoginState);
+  const [state, action, pending] = useActionState(dispatch, { step: startAtProfile ? "profile" : "phone", as, next, signup } as LoginState);
   const idx = STEPS.indexOf(state.step);
   const teacher = state.as === "teacher";
   return (
@@ -29,10 +29,11 @@ export function LoginFlow({ as, next, demo, startAtProfile }: { as: "student" | 
 
       {state.step === "phone" && (
         <form className="frm" action={action}>
-          <h1 style={{ fontSize: 24 }}>{teacher ? t("Teacher sign in") : t("Student sign in")}</h1>
+          <h1 style={{ fontSize: 24 }}>{signup ? t("Create your account") : teacher ? t("Teacher sign in") : t("Student sign in")}</h1>
           <p className="muted">{t("No email and no password. We send a code to your phone.")}</p>
           <input type="hidden" name="as" value={state.as} />
           <input type="hidden" name="next" value={state.next ?? ""} />
+          {signup && <input type="hidden" name="signup" value="1" />}
           <div>
             <label className="h" htmlFor="ph">
               {t("Mobile number")}
@@ -58,9 +59,20 @@ export function LoginFlow({ as, next, demo, startAtProfile }: { as: "student" | 
           <button className="btn btn-pri" type="submit" disabled={pending}>
             {pending ? t("One moment...") : t("Send me a code")}
           </button>
-          <Link className="link" style={{ justifySelf: "center" }} href={teacher ? "/login" : "/login?as=teacher"}>
-            {teacher ? t("I'm a student. Sign in here") : t("I'm a teacher. Sign in here")}
-          </Link>
+          {signup ? (
+            <Link className="link" style={{ justifySelf: "center" }} href="/login">
+              {t("Already have an account? Sign in")}
+            </Link>
+          ) : (
+            <Link className="link" style={{ justifySelf: "center" }} href="/signup">
+              {t("New here? Create an account")}
+            </Link>
+          )}
+          {!demo && !signup && (
+            <Link className="link" style={{ justifySelf: "center" }} href={teacher ? "/login" : "/login?as=teacher"}>
+              {teacher ? t("I'm a student. Sign in here") : t("I'm a teacher. Sign in here")}
+            </Link>
+          )}
         </form>
       )}
 

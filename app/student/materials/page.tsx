@@ -17,15 +17,15 @@ export default async function Materials() {
   return (
     <>
       <TopBar
-        title={t("Materials")}
-        sub={t("All lessons, notes and quizzes from your teachers, organized by unit.")}
+        title={t("Study materials")}
+        sub={t("All lessons, notes and quizzes from your teachers, organized by chapter.")}
         who={first}
         initial={first[0] ?? "S"}
         color="var(--orange)"
       />
       {teachers.length === 0 && (
         <div className="card empty">
-          {t("No materials yet.")} <Link className="link" href="/student/redeem">{t("Activate a code from your teacher")}</Link> {t("to open their materials.")}
+          {t("No study materials yet.")} <Link className="link" href="/student/redeem">{t("Activate a code from your teacher")}</Link> {t("to open their study materials.")}
         </div>
       )}
       {teachers.map((x) => {

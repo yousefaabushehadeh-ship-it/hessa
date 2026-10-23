@@ -17,14 +17,14 @@ export default async function Content() {
     <>
       <TopBar
         title={t("Content")}
-        sub={t("Organize your lessons into units, and pick which ones are free to try.")}
+        sub={t("Organize your lessons into chapters, and pick which ones are free to try.")}
         who={`${t("Teacher")} ${first}`}
         initial={x.initial}
         color={x.color}
       />
       <div className="g2">
         <div className="col">
-          {x.units.length === 0 && <div className="card empty">{t("Start by adding your first unit, then upload its materials.")}</div>}
+          {x.units.length === 0 && <div className="card empty">{t("Start by adding your first chapter, then upload its study materials.")}</div>}
           {x.units.map((u) => (
             <div className="card panel" key={u.id}>
               <div className="ph2">
@@ -78,7 +78,7 @@ export default async function Content() {
           </div>
           <div className="card panel">
             <div className="ph2">
-              <h2>{t("New unit")}</h2>
+              <h2>{t("New chapter")}</h2>
             </div>
             <AddUnitForm />
           </div>

@@ -17,7 +17,7 @@ export default async function TeacherHome() {
     <>
       <TopBar
         title={t("Welcome, Teacher {name}", { name: first })}
-        sub={t("Create activation codes for your students, and organize your content from the Content page.")}
+        sub={t("Create access codes for your students, and organize your content from the Content page.")}
         who={`${t("Teacher")} ${first}`}
         initial={x.initial}
         color={x.color}
@@ -52,7 +52,7 @@ export default async function TeacherHome() {
         <div className="col">
           <div className="card panel">
             <div className="ph2">
-              <h2>{t("Activation codes")}</h2>
+              <h2>{t("Access codes")}</h2>
               <span className="muted" style={{ fontSize: 13 }}>
                 {t("One code per student")}
               </span>
@@ -95,7 +95,7 @@ export default async function TeacherHome() {
               <h2>{t("My public page")}</h2>
             </div>
             <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
-              {t("Share this link with your students so they can see your materials and try the free lessons.")}
+              {t("Share this link with your students so they can see your study materials and try the free lessons.")}
             </p>
             <Link className="btn btn-ghost btn-sm" href={`/${x.slug}`}>
               <Icon name="globe" sm /> hessa.jo/{x.slug}

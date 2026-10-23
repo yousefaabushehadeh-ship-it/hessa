@@ -4,7 +4,7 @@ import { getT } from "@/lib/i18n-server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DEMO_MODE, DEMO_OTP, SITE_URL } from "@/lib/env";
-import { DEMO_STUDENT, DEMO_TEACHER_ID, TEACHERS } from "@/lib/demo-data";
+import { DEMO_STUDENT } from "@/lib/demo-data";
 import { DEMO_SUBS_COOKIE } from "@/lib/data";
 import { DEMO_COOKIE, getSession } from "@/lib/session";
 import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
@@ -16,6 +16,8 @@ export type LoginState = {
   as?: "student" | "teacher";
   /** Where to go after sign-in (only same-site paths). */
   next?: string;
+  /** Came from the sign-up page, so the demo asks for a name. */
+  signup?: boolean;
   error?: string;
 };
 
@@ -33,14 +35,15 @@ export async function sendOtp(_prev: LoginState, fd: FormData): Promise<LoginSta
   const phone = cleanPhone(fd.get("phone"));
   const as = fd.get("as") === "teacher" ? "teacher" : "student";
   const next = String(fd.get("next") ?? "") || undefined;
-  if (!PHONE_RE.test(phone)) return { step: "phone", as, next, error: t("Enter a valid Jordanian number starting with 77, 78 or 79.") };
-  if (!fd.get("agree")) return { step: "phone", phone, as, next, error: t("You must agree to the terms and privacy policy.") };
+  const signup = fd.get("signup") === "1" || undefined;
+  if (!PHONE_RE.test(phone)) return { step: "phone", as, next, signup, error: t("Enter a valid Jordanian number starting with 77, 78 or 79.") };
+  if (!fd.get("agree")) return { step: "phone", phone, as, next, signup, error: t("You must agree to the terms and privacy policy.") };
   if (!DEMO_MODE) {
     const supabase = await supabaseServer();
     const { error } = await supabase.auth.signInWithOtp({ phone: `+962${phone}` });
-    if (error) return { step: "phone", phone, as, next, error: t("We couldn't send the code. Please try again shortly.") };
+    if (error) return { step: "phone", phone, as, next, signup, error: t("We couldn't send the code. Please try again shortly.") };
   }
-  return { step: "otp", phone, as, next };
+  return { step: "otp", phone, as, next, signup };
 }
 
 export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginState> {
@@ -50,10 +53,10 @@ export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginSt
 
   if (DEMO_MODE) {
     if (token !== DEMO_OTP) return { ...prev, error: t("Wrong code. In the demo, the code is 482913.") };
-    if (prev.as === "teacher") {
-      const t = TEACHERS.find((x) => x.id === DEMO_TEACHER_ID)!;
-      await setDemoSession({ userId: "demo-teacher", role: "teacher", fullName: t.name, teacherId: t.id, consent: "not_needed" });
-      redirect("/teacher");
+    // Signing in to the demo always opens the one demo account; only sign-up asks for a name.
+    if (!prev.signup) {
+      await setDemoSession({ userId: DEMO_STUDENT.id, role: "student", fullName: DEMO_STUDENT.fullName, consent: "not_needed" });
+      redirect(safeNext(prev.next));
     }
     return { ...prev, step: "profile", error: undefined };
   }

@@ -34,7 +34,7 @@ export async function redeemCode(_prev: RedeemState, fd: FormData): Promise<Rede
   const { error } = await supabase.rpc("redeem_code", { p_code: code });
   if (error) return { error: t("The code is wrong or has already been used.") };
   revalidatePath("/student", "layout");
-  return { ok: t("Your subscription is active. Your materials are now open.") };
+  return { ok: t("Your subscription is active. Your study materials are now open.") };
 }
 
 export async function markDone(lessonId: string) {

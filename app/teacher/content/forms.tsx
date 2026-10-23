@@ -12,12 +12,12 @@ export function AddLessonForm({ units }: { units: { id: string; title: string }[
     if (r.ok) ref.current?.reset();
     return r;
   }, {});
-  if (!units.length) return <p className="muted">{t("Add a unit first.")}</p>;
+  if (!units.length) return <p className="muted">{t("Add a chapter first.")}</p>;
   return (
     <form className="frm" action={action} ref={ref}>
       <div>
         <label className="h" htmlFor="l-unit">
-          {t("Unit")}
+          {t("Chapter")}
         </label>
         <select className="field" id="l-unit" name="unit">
           {units.map((u) => (
@@ -74,11 +74,11 @@ export function AddUnitForm() {
   const [state, action, pending] = useActionState(addUnit, {});
   return (
     <form className="frm" action={action}>
-      <input className="field" name="title" required placeholder={t("e.g. Unit 4: Vectors")} aria-label={t("Unit name")} />
+      <input className="field" name="title" required placeholder={t("e.g. Chapter 4: Vectors")} aria-label={t("Chapter name")} />
       {state.error && <p className="form-error">{state.error}</p>}
       {state.ok && <p className="form-ok">{state.ok}</p>}
       <button className="btn btn-ghost" disabled={pending}>
-        {t("Add unit")}
+        {t("Add chapter")}
       </button>
     </form>
   );
