@@ -11,7 +11,7 @@ import { requireRole } from "@/lib/session";
 export default async function StudentLayout({ children }: { children: ReactNode }) {
   const t = await getT();
   const s = await requireRole("student");
-  if (!s.fullName) redirect("/login");
+  if (!s.fullName) redirect("/login/student");
   const link = s.consent === "pending" ? await myConsentLink() : null;
   const NAV: NavItem[] = [
     { href: "/student", label: t("Home"), icon: "home" },

@@ -152,7 +152,7 @@ export default async function TeacherPage({ params }: { params: Params }) {
                       </>
                     );
                     return open ? (
-                      <Link key={l.id} className="lesson" href={session ? `/student/lesson/${l.id}` : `/login?next=/student/lesson/${l.id}`}>
+                      <Link key={l.id} className="lesson" href={session ? `/student/lesson/${l.id}` : `/login/student?next=/student/lesson/${l.id}`}>
                         {body}
                       </Link>
                     ) : (
@@ -220,7 +220,7 @@ export default async function TeacherPage({ params }: { params: Params }) {
                     </span>
                     <span className="pr num">{t("{n} JOD", { n: teacher.priceTerm })}</span>
                   </div>
-                  <Link className="btn btn-pri" href={session ? "/student/redeem" : "/login?next=/student/redeem"}>
+                  <Link className="btn btn-pri" href={session ? "/student/redeem" : "/login/student?next=/student/redeem"}>
                     {t("I have an access code")}
                   </Link>
                   <p className="muted" style={{ fontSize: 13, textAlign: "center" }}>

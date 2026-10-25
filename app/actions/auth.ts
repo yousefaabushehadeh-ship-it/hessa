@@ -4,7 +4,7 @@ import { getT } from "@/lib/i18n-server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DEMO_MODE, DEMO_OTP, SITE_URL } from "@/lib/env";
-import { DEMO_STUDENT } from "@/lib/demo-data";
+import { DEMO_STUDENT, DEMO_TEACHER_ID, TEACHERS } from "@/lib/demo-data";
 import { DEMO_SUBS_COOKIE } from "@/lib/data";
 import { DEMO_COOKIE, getSession } from "@/lib/session";
 import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
@@ -53,8 +53,12 @@ export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginSt
 
   if (DEMO_MODE) {
     if (token !== DEMO_OTP) return { ...prev, error: t("Wrong code. In the demo, the code is 482913.") };
-    // Signing in to the demo always opens the one demo account; only sign-up asks for a name.
+    // Signing in to the demo opens that portal's demo account; only sign-up asks for a name.
     if (!prev.signup) {
+      if (prev.as === "teacher") {
+        await setDemoSession({ userId: "demo-teacher", role: "teacher", fullName: TEACHERS.find((x) => x.id === DEMO_TEACHER_ID)!.name, teacherId: DEMO_TEACHER_ID, consent: "not_needed" });
+        redirect("/teacher");
+      }
       await setDemoSession({ userId: DEMO_STUDENT.id, role: "student", fullName: DEMO_STUDENT.fullName, consent: "not_needed" });
       redirect(safeNext(prev.next));
     }
@@ -65,12 +69,48 @@ export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginSt
   const { data, error } = await supabase.auth.verifyOtp({ phone: `+962${prev.phone}`, token, type: "sms" });
   if (error || !data.user) return { ...prev, error: t("The code is wrong or has expired.") };
   const { data: profile } = await supabase.from("profiles").select("role, full_name, consent").eq("id", data.user.id).single();
-  if (profile?.role === "teacher" || profile?.role === "admin") redirect("/teacher");
+  const isTeacher = profile?.role === "teacher" || profile?.role === "admin";
+  // Each portal only opens its own kind of account.
+  if (isTeacher && prev.as !== "teacher") {
+    await supabase.auth.signOut();
+    return { step: "phone", as: prev.as, next: prev.next, phone: prev.phone, signup: prev.signup, error: t("This number belongs to a teacher account. Use the teacher portal.") };
+  }
+  if (!isTeacher && prev.as === "teacher" && profile?.full_name) {
+    await supabase.auth.signOut();
+    return { step: "phone", as: prev.as, phone: prev.phone, signup: prev.signup, error: t("This number belongs to a student account. Use the student portal.") };
+  }
+  if (isTeacher) redirect("/teacher");
   if (!profile?.full_name) return { ...prev, step: "profile", error: undefined };
   redirect(safeNext(prev.next));
 }
 
+/** Last step of teacher sign-up: name and subject, then the page waits for verification. */
+async function completeTeacherProfile(prev: LoginState, fd: FormData): Promise<LoginState> {
+  const t = await getT();
+  const fullName = String(fd.get("name") ?? "").trim();
+  const subject = String(fd.get("subject") ?? "").trim();
+  if (fullName.length < 3) return { ...prev, error: t("Enter your full name.") };
+  if (!subject) return { ...prev, error: t("Choose the subject you teach.") };
+
+  if (DEMO_MODE) {
+    await setDemoSession({ userId: "demo-teacher", role: "teacher", fullName, teacherId: DEMO_TEACHER_ID, consent: "not_needed" });
+    redirect("/teacher");
+  }
+
+  const supabase = await supabaseServer();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { step: "phone", as: "teacher", signup: prev.signup, error: t("Your session has ended. Please sign in again.") };
+  const uid = auth.user.id;
+  // For teachers, `grade` holds the subject they teach until their page is set up.
+  await supabase.from("profiles").update({ full_name: fullName, grade: subject, is_minor: false }).eq("id", uid);
+  // Users can't change their own role or consent (protect_fields), so the server does it.
+  // A teacher role alone opens nothing: the dashboard waits until an admin links a verified page.
+  await supabaseAdmin().from("profiles").update({ role: "teacher", consent: "not_needed" }).eq("id", uid).eq("role", "student");
+  redirect("/teacher");
+}
+
 export async function completeProfile(prev: LoginState, fd: FormData): Promise<LoginState> {
+  if (prev.as === "teacher") return completeTeacherProfile(prev, fd);
   const t = await getT();
   const fullName = String(fd.get("name") ?? "").trim();
   const grade = String(fd.get("grade") ?? "");
@@ -87,7 +127,7 @@ export async function completeProfile(prev: LoginState, fd: FormData): Promise<L
 
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { step: "phone", error: t("Your session has ended. Please sign in again.") };
+  if (!auth.user) return { step: "phone", as: "student", signup: prev.signup, error: t("Your session has ended. Please sign in again.") };
   const uid = auth.user.id;
   await supabase.from("profiles").update({ full_name: fullName, grade, is_minor: isMinor, parent_phone: isMinor ? `+962${parentPhone}` : null }).eq("id", uid);
   if (!isMinor) {

@@ -31,7 +31,7 @@ export async function SiteNav({ active }: { active?: "browse" }) {
           <span className="sp" />
           <LangSwitch />
           {s ? (
-            <Link href={s.role === "teacher" ? "/teacher" : "/student"} className="btn btn-pri btn-sm">
+            <Link href={s.role === "student" ? "/student" : "/teacher"} className="btn btn-pri btn-sm">
               {t("My account")}
             </Link>
           ) : (
@@ -69,12 +69,15 @@ export async function SiteFooter() {
         <div className="cols">
           <div>
             <h4>{t("For students")}</h4>
+            <Link href="/signup/student">{t("Create a student account")}</Link>
+            <Link href="/login/student">{t("Student sign in")}</Link>
             <Link href="/teachers">{t("Browse teachers")}</Link>
             <Link href="/#faq">{t("FAQ")}</Link>
           </div>
           <div>
             <h4>{t("For teachers")}</h4>
-            {!DEMO_MODE && <Link href="/login?as=teacher">{t("Open your dashboard")}</Link>}
+            <Link href="/signup/teacher">{t("Create a teacher account")}</Link>
+            <Link href="/login/teacher">{t("Teacher sign in")}</Link>
             <Link href="/#teachers-band">{t("Prices and commission")}</Link>
           </div>
           <div>
