@@ -1,5 +1,5 @@
 import { TopBar } from "@/components/dash-shell";
-import { DEMO_MODE } from "@/lib/env";
+import { DEMO_CODE, DEMO_MODE } from "@/lib/env";
 import { getT } from "@/lib/i18n-server";
 import { requireRole } from "@/lib/session";
 import { RedeemForm } from "./redeem-form";
@@ -21,7 +21,7 @@ export default async function Redeem() {
         <RedeemForm />
         {DEMO_MODE && (
           <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>
-            {t("To try it: use the code")} <b dir="ltr">HS-KHALED-02</b>
+            {t("To try it: use the code")} <b dir="ltr">{DEMO_CODE}</b>
           </p>
         )}
       </div>

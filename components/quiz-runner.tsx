@@ -25,7 +25,7 @@ export function QuizRunner({ lessonId, questions, last }: { lessonId: string; qu
       {questions.map((q, i) => (
         <div className="qq" key={q.id}>
           <b>
-            {i + 1}. {q.prompt}
+            {i + 1}. <bdi>{q.prompt}</bdi>
           </b>
           <div className="ans">
             {q.options.map((o, j) => {
@@ -33,7 +33,7 @@ export function QuizRunner({ lessonId, questions, last }: { lessonId: string; qu
               return (
                 <label key={j} className={cls}>
                   <input type="radio" name={`q${i}`} value={j} required disabled={Boolean(r)} defaultChecked={r ? r.answers[i] === j : false} />
-                  <span>{o}</span>
+                  <span dir="auto">{o}</span>
                 </label>
               );
             })}
