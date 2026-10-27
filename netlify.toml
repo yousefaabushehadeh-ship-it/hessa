@@ -1,0 +1,4 @@
+# Netlify picks up its Next.js runtime when the build runs `next build` and publishes `.next`.
+[build]
+  command = "npm run build"
+  publish = ".next"
