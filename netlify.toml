@@ -1,4 +1,4 @@
-# Netlify picks up its Next.js runtime when the build runs `next build` and publishes `.next`.
+# Build with next build and serve it through Netlify's Next.js runtime (server functions for dynamic pages).
 [build]
   command = "npm run build"
   publish = ".next"
