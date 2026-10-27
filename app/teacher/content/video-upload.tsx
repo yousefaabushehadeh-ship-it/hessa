@@ -19,7 +19,7 @@ export function VideoUploadForm({ units, enabled }: { units: { id: string; title
         {t("Video upload works once Bunny Stream is connected (steps are in the README). Videos are stored encrypted and shown to each student through a temporary link.")}
       </p>
     );
-  if (!units.length) return <p className="muted">{t("Add a unit first.")}</p>;
+  if (!units.length) return <p className="muted">{t("Add a chapter first.")}</p>;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -67,7 +67,7 @@ export function VideoUploadForm({ units, enabled }: { units: { id: string; title
     <form className="frm" ref={ref} onSubmit={onSubmit}>
       <div>
         <label className="h" htmlFor="v-unit">
-          {t("Unit")}
+          {t("Chapter")}
         </label>
         <select className="field" id="v-unit" name="unit">
           {units.map((u) => (

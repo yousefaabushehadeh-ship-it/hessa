@@ -15,14 +15,14 @@ export default async function Home() {
   const FAQ: [string, string][] = [
     [
       t("How do I subscribe to a teacher?"),
-      t("Agree on a plan with the teacher and pay them directly. They give you an activation code, and all their lessons open as soon as you enter it. Online payments (CliQ and wallets) are coming soon."),
+      t("Agree on a plan with the teacher and pay them directly. They give you an access code, and all their lessons open as soon as you enter it. Online payments (CliQ and wallets) are coming soon."),
     ],
     [
       t("Why do you ask for a parent's approval?"),
       t("Most of our students are under 18, and Jordan's personal data protection law (No. 24 of 2023) requires clear consent. We send your parent a link, and they approve it in one tap."),
     ],
     [
-      t("How do you protect the teachers' materials?"),
+      t("How do you protect the teachers' study materials?"),
       t("Files are stored privately and open through a temporary link for subscribers only. Every file carries a watermark with the student's name."),
     ],
     [
@@ -41,7 +41,7 @@ export default async function Home() {
         <div className="wrap">
           <div>
             <span className="eyebrow">
-              <Icon name="check" sm /> {t("Built for Tawjihi students and their teachers in Jordan")}
+              <Icon name="check" sm /> {t("Built for students preparing for Jordan's Tawjihi national exam")}
             </span>
             <h1>
               {t("Your favorite teacher,")}
@@ -52,13 +52,23 @@ export default async function Home() {
               {t("Videos, notes, quizzes and live classes with your own teacher. Subscribe with a code from your teacher and track your progress as you go.")}
             </p>
             <div className="ctas">
-              <Link className="btn btn-pri" href="/teachers">
+              <Link className="btn btn-pri" href="/signup/student">
+                {t("Create a free student account")}
+              </Link>
+              <Link className="btn btn-ghost" href="/teachers">
                 <Icon name="search" sm /> {t("Browse teachers")}
               </Link>
-              <Link className="btn btn-ghost" href="/login?as=teacher">
-                {t("I'm a teacher. Open my page")}
-              </Link>
             </div>
+            <p className="signin-line">
+              {t("Already have an account?")}{" "}
+              <Link className="link" href="/login">
+                {t("Sign in")}
+              </Link>
+              {" · "}
+              <Link className="link" href="/login/teacher">
+                {t("I'm a teacher")}
+              </Link>
+            </p>
             <div className="facts">
               <div>
                 <b className="num">{teachers.length}</b>
@@ -117,7 +127,74 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="sec gut">
+      <section className="sec gut" id="who">
+        <div className="wrap">
+          <div className="sec-h">
+            <div>
+              <h2>{t("One platform, two sides")}</h2>
+              <p>{t("Students and teachers each have their own account and their own space.")}</p>
+            </div>
+          </div>
+          <div className="roles">
+            <div className="card role-card student">
+              <span className="pill p-ok" style={{ justifySelf: "start" }}>
+                {t("For students")}
+              </span>
+              <h3>{t("Everything you study, in one place")}</h3>
+              <ul>
+                {[
+                  t("Video lessons from your own teacher, watch them any time"),
+                  t("Quizzes that are graded instantly"),
+                  t("Notes and past paper solutions"),
+                  t("Your progress in every subject, at a glance"),
+                ].map((x) => (
+                  <li key={x}>
+                    <Icon name="check" sm />
+                    <span>{x}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="ctas">
+                <Link className="btn btn-pri" href="/signup/student">
+                  {t("Create a student account")}
+                </Link>
+                <Link className="btn btn-ghost" href="/login/student">
+                  {t("Student sign in")}
+                </Link>
+              </div>
+            </div>
+            <div className="card role-card">
+              <span className="pill p-warn" style={{ justifySelf: "start" }}>
+                {t("For teachers")}
+              </span>
+              <h3>{t("Your page, your students")}</h3>
+              <ul>
+                {[
+                  t("A public page with your subjects, prices and reviews"),
+                  t("Upload videos, files and quizzes by chapter"),
+                  t("Give your students access codes"),
+                  t("See who is studying and how they are doing"),
+                ].map((x) => (
+                  <li key={x}>
+                    <Icon name="check" sm />
+                    <span>{x}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="ctas">
+                <Link className="btn btn-pri" href="/signup/teacher">
+                  {t("Create a teacher account")}
+                </Link>
+                <Link className="btn btn-ghost" href="/login/teacher">
+                  {t("Teacher sign in")}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="sec gut" style={{ paddingTop: 0 }}>
         <div className="wrap">
           <div className="sec-h">
             <div>
@@ -185,6 +262,11 @@ export default async function Home() {
               <p>{t("All your lessons from all your teachers in one dashboard, so you always know what's done and what's left.")}</p>
             </div>
           </div>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 26 }}>
+            <Link className="btn btn-pri" href="/signup/student">
+              {t("Create a free student account")}
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -194,7 +276,7 @@ export default async function Home() {
             <div>
               <h2>{t("A teacher? Your page, your students, your name.")}</h2>
               <p>
-                {t("Hessa isn't a marketplace that sells your content. You own your page, and we give you the tools: easy uploads, activation codes for your students, and watermarked files that protect your work.")}
+                {t("Hessa isn't a marketplace that sells your content. You own your page, and we give you the tools: easy uploads, access codes for your students, and watermarked files that protect your work.")}
               </p>
               <ul>
                 <li>
@@ -203,15 +285,18 @@ export default async function Home() {
                 </li>
                 <li>
                   <Icon name="check" sm />
-                  <span>{t("Organize your lessons into units and pick which ones are free to try")}</span>
+                  <span>{t("Organize your lessons into chapters and pick which ones are free to try")}</span>
                 </li>
                 <li>
                   <Icon name="check" sm />
-                  <span>{t("Create monthly or term activation codes in one click")}</span>
+                  <span>{t("Create monthly or term access codes in one click")}</span>
                 </li>
               </ul>
-              <div style={{ marginTop: 26 }}>
-                <Link className="btn btn-mint" href="/login?as=teacher">
+              <div style={{ marginTop: 26, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <Link className="btn btn-mint" href="/signup/teacher">
+                  {t("Create a teacher account")}
+                </Link>
+                <Link className="btn btn-ghost" href="/login/teacher">
                   {t("Sign in to your teacher dashboard")}
                 </Link>
               </div>

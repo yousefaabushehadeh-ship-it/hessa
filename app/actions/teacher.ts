@@ -51,7 +51,7 @@ export async function addUnit(_prev: FormState, fd: FormData): Promise<FormState
   const t = await getT();
   const id = await myTeacherId();
   const title = String(fd.get("title") ?? "").trim();
-  if (title.length < 2) return { error: t("Enter the unit name.") };
+  if (title.length < 2) return { error: t("Enter the chapter name.") };
   if (DEMO_MODE) {
     const t = TEACHERS.find((x) => x.id === id)!;
     t.units.push({ id: `${id}-u${t.units.length}`, title, position: t.units.length, lessons: [] });
@@ -59,10 +59,10 @@ export async function addUnit(_prev: FormState, fd: FormData): Promise<FormState
     const supabase = await supabaseServer();
     const { count } = await supabase.from("units").select("id", { count: "exact", head: true }).eq("teacher_id", id);
     const { error } = await supabase.from("units").insert({ teacher_id: id, title, position: count ?? 0 });
-    if (error) return { error: t("We couldn't add the unit.") };
+    if (error) return { error: t("We couldn't add the chapter.") };
   }
   revalidatePath("/teacher/content");
-  return { ok: t("Unit «{title}» was added.", { title }) };
+  return { ok: t("Chapter «{title}» was added.", { title }) };
 }
 
 // Videos go through app/actions/video.ts (direct upload to Bunny Stream).
@@ -85,12 +85,12 @@ export async function addLesson(_prev: FormState, fd: FormData): Promise<FormSta
 
   if (DEMO_MODE) {
     const unit = TEACHERS.find((x) => x.id === id)?.units.find((u) => u.id === unitId);
-    if (!unit) return { error: t("Choose the unit.") };
+    if (!unit) return { error: t("Choose the chapter.") };
     unit.lessons.push({ id: `${unitId}-l${unit.lessons.length}`, title, type, meta: meta || (hasFile ? t("New file") : ""), isFree, position: unit.lessons.length });
   } else {
     const supabase = await supabaseServer();
     const { data: unit } = await supabase.from("units").select("id").eq("id", unitId).eq("teacher_id", id).maybeSingle();
-    if (!unit) return { error: t("Choose the unit.") };
+    if (!unit) return { error: t("Choose the chapter.") };
     let storagePath: string | null = null;
     if (hasFile) {
       // The first folder must be the teacher id: the storage policy checks it.

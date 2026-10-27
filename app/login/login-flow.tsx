@@ -10,29 +10,45 @@ const STEPS: LoginState["step"][] = ["phone", "otp", "profile"];
 // One action per step; each returns the state for the next step.
 async function dispatch(prev: LoginState, fd: FormData): Promise<LoginState> {
   if (prev.step === "phone") return sendOtp(prev, fd);
-  if (prev.step === "otp") return fd.get("back") ? { step: "phone", as: prev.as, next: prev.next, phone: prev.phone } : verifyOtp(prev, fd);
+  if (prev.step === "otp") return fd.get("back") ? { step: "phone", as: prev.as, next: prev.next, phone: prev.phone, signup: prev.signup } : verifyOtp(prev, fd);
   return completeProfile(prev, fd);
 }
 
-export function LoginFlow({ as, next, demo, startAtProfile }: { as: "student" | "teacher"; next?: string; demo: boolean; startAtProfile?: boolean }) {
+type Props = {
+  as: "student" | "teacher";
+  next?: string;
+  demo: boolean;
+  startAtProfile?: boolean;
+  signup?: boolean;
+  /** Subjects a teacher can pick when signing up: [stored value, label]. */
+  subjects?: [string, string][];
+};
+
+export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [] }: Props) {
   const t = useT();
-  const [state, action, pending] = useActionState(dispatch, { step: startAtProfile ? "profile" : "phone", as, next } as LoginState);
+  const [state, action, pending] = useActionState(dispatch, { step: startAtProfile ? "profile" : "phone", as, next, signup } as LoginState);
   const idx = STEPS.indexOf(state.step);
   const teacher = state.as === "teacher";
   return (
     <div className="card center-card">
       <div className="dots">
-        {(teacher ? STEPS.slice(0, 2) : STEPS).map((s, i) => (
+        {(teacher && !signup && !startAtProfile ? STEPS.slice(0, 2) : STEPS).map((s, i) => (
           <i key={s} className={i <= idx ? "on" : ""} />
         ))}
       </div>
 
       {state.step === "phone" && (
         <form className="frm" action={action}>
-          <h1 style={{ fontSize: 24 }}>{teacher ? t("Teacher sign in") : t("Student sign in")}</h1>
+          <span className={`pill ${teacher ? "p-warn" : "p-ok"}`} style={{ justifySelf: "start" }}>
+            {teacher ? t("Teacher portal") : t("Student portal")}
+          </span>
+          <h1 style={{ fontSize: 24 }}>
+            {signup ? (teacher ? t("Create a teacher account") : t("Create a student account")) : teacher ? t("Teacher sign in") : t("Student sign in")}
+          </h1>
           <p className="muted">{t("No email and no password. We send a code to your phone.")}</p>
           <input type="hidden" name="as" value={state.as} />
           <input type="hidden" name="next" value={state.next ?? ""} />
+          {signup && <input type="hidden" name="signup" value="1" />}
           <div>
             <label className="h" htmlFor="ph">
               {t("Mobile number")}
@@ -58,8 +74,11 @@ export function LoginFlow({ as, next, demo, startAtProfile }: { as: "student" | 
           <button className="btn btn-pri" type="submit" disabled={pending}>
             {pending ? t("One moment...") : t("Send me a code")}
           </button>
-          <Link className="link" style={{ justifySelf: "center" }} href={teacher ? "/login" : "/login?as=teacher"}>
-            {teacher ? t("I'm a student. Sign in here") : t("I'm a teacher. Sign in here")}
+          <Link className="link" style={{ justifySelf: "center" }} href={signup ? `/login/${state.as}` : `/signup/${state.as}`}>
+            {signup ? t("Already have an account? Sign in") : t("New here? Create an account")}
+          </Link>
+          <Link className="link" style={{ justifySelf: "center", fontSize: 13.5 }} href={`/${signup ? "signup" : "login"}/${teacher ? "student" : "teacher"}`}>
+            {teacher ? t("Are you a student? Go to the student portal") : t("Are you a teacher? Go to the teacher portal")}
           </Link>
         </form>
       )}
@@ -99,7 +118,38 @@ export function LoginFlow({ as, next, demo, startAtProfile }: { as: "student" | 
         </form>
       )}
 
-      {state.step === "profile" && (
+      {state.step === "profile" && teacher && (
+        <form className="frm" action={action}>
+          <h1 style={{ fontSize: 24 }}>{t("About your teaching")}</h1>
+          <div>
+            <label className="h" htmlFor="tnm">
+              {t("Full name")}
+            </label>
+            <input className="field" id="tnm" name="name" required autoComplete="name" />
+          </div>
+          <div>
+            <label className="h" htmlFor="sub">
+              {t("Subject you teach")}
+            </label>
+            <select className="field" id="sub" name="subject" required>
+              {subjects.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <p className="muted" style={{ fontSize: 13 }}>
+            {t("We check every teacher's identity and qualifications before their page goes public. We will contact you on this number.")}
+          </p>
+          {state.error && <p className="form-error">{state.error}</p>}
+          <button className="btn btn-pri" type="submit" disabled={pending}>
+            {pending ? t("One moment...") : t("Continue")}
+          </button>
+        </form>
+      )}
+
+      {state.step === "profile" && !teacher && (
         <form className="frm" action={action}>
           <h1 style={{ fontSize: 24 }}>{t("A bit about you")}</h1>
           <div>

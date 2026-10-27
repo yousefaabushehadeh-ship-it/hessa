@@ -37,10 +37,10 @@ export async function requireSession(): Promise<Session> {
   return s;
 }
 
-/** Sends people who aren't signed in (or have the wrong role) to the login page. */
+/** Sends people who aren't signed in to their portal, and people with the wrong role to their own dashboard. */
 export async function requireRole(role: Role): Promise<Session> {
   const s = await getSession();
-  if (!s) redirect("/login");
+  if (!s) redirect(role === "teacher" ? "/login/teacher" : "/login/student");
   if (s.role !== role && s.role !== "admin") redirect(s.role === "teacher" ? "/teacher" : "/student");
   return s;
 }

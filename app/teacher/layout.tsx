@@ -22,7 +22,7 @@ export default async function TeacherLayout({ children }: { children: ReactNode 
         <div className="card center-card">
           <h1 style={{ fontSize: 22 }}>{t("Your page is being set up")}</h1>
           <p className="muted">
-            {t("Once we verify your identity and qualifications, we will link your page to your account and you can upload your materials. Contact support@hessa.jo.")}
+            {t("Once we verify your identity and qualifications, we will link your page to your account and you can upload your study materials. Contact support@hessa.jo.")}
           </p>
         </div>
       )}

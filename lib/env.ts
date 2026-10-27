@@ -5,3 +5,5 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:30
 /** Without Supabase keys the app runs on sample data, with a fixed OTP code. */
 export const DEMO_MODE = !(SUPABASE_URL && SUPABASE_ANON_KEY);
 export const DEMO_OTP = "482913";
+/** The access code shown on the redeem page; in the demo it works for every visitor, not just the first. */
+export const DEMO_CODE = "HS-KHALED-02";
