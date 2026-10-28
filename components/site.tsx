@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { LangSwitch } from "@/components/lang-switch";
-import { DEMO_MODE } from "@/lib/env";
 import { getSession } from "@/lib/session";
 import { getT } from "@/lib/i18n-server";
 
@@ -9,13 +8,6 @@ export async function SiteNav({ active }: { active?: "browse" }) {
   const t = await getT();
   return (
     <>
-      {DEMO_MODE && (
-        <div className="demo gut">
-          <div className="wrap">
-            <span className="tag">{t("Demo version with sample data. Login code for any number: 482913")}</span>
-          </div>
-        </div>
-      )}
       <header className="nav gut">
         <div className="wrap">
           <Link href="/" className="logo" aria-label={t("Hessa, home page")}>

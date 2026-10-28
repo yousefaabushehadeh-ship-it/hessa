@@ -41,7 +41,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
           )}
           {DEMO_MODE && (
             <Link className="btn btn-ghost" href="/consent/demo">
-              {t("(Demo) Open the approval page as a parent")}
+              {t("Open the approval page as a parent")}
             </Link>
           )}
         </div>

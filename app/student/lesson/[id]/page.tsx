@@ -80,16 +80,12 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
             ) : (
               <div className="empty" style={{ minHeight: 320, display: "grid", placeItems: "center" }}>
                 {lesson.type === "video"
-                  ? DEMO_MODE || !BUNNY_ENABLED
-                    ? t("Video plays here once Bunny Stream is connected. The demo has no videos.")
-                    : t("The teacher hasn't uploaded this video yet.")
+                  ? t("The teacher hasn't uploaded this video yet.")
                   : lesson.type === "live"
                     ? t("Live class: {meta}. The join link appears here before the start time.", { meta: lesson.meta })
                     : lesson.type === "quiz"
                       ? t("The teacher hasn't added questions to this quiz yet.")
-                      : DEMO_MODE
-                        ? t("The demo has no uploaded files. When a teacher uploads a PDF, it appears here.")
-                        : t("The teacher hasn't uploaded the file yet.")}
+                      : t("The teacher hasn't uploaded the file yet.")}
               </div>
             )}
             <div className="wm" aria-hidden="true">

@@ -52,11 +52,11 @@ export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginSt
   if (token.length !== 6) return { ...prev, error: t("The code has 6 digits.") };
 
   if (DEMO_MODE) {
-    if (token !== DEMO_OTP) return { ...prev, error: t("Wrong code. In the demo, the code is 482913.") };
+    if (token !== DEMO_OTP) return { ...prev, error: t("Wrong code. Check it and try again.") };
     // Signing in to the demo opens that portal's demo account; only sign-up asks for a name.
     if (!prev.signup) {
       if (prev.as === "teacher") {
-        await setDemoSession({ userId: "demo-teacher", role: "teacher", fullName: TEACHERS.find((x) => x.id === DEMO_TEACHER_ID)!.name, teacherId: DEMO_TEACHER_ID, consent: "not_needed" });
+        await setDemoSession({ userId: "3b8e1d47-2a9c-4f60-8d15-6e7a0c9b2f34", role: "teacher", fullName: TEACHERS.find((x) => x.id === DEMO_TEACHER_ID)!.name, teacherId: DEMO_TEACHER_ID, consent: "not_needed" });
         redirect("/teacher");
       }
       await setDemoSession({ userId: DEMO_STUDENT.id, role: "student", fullName: DEMO_STUDENT.fullName, consent: "not_needed" });
@@ -94,7 +94,7 @@ async function completeTeacherProfile(prev: LoginState, fd: FormData): Promise<L
 
   if (DEMO_MODE) {
     // A new teacher has no page yet: the dashboard shows the verification steps, like the real flow.
-    await setDemoSession({ userId: `demo-teacher-${prev.phone}`, role: "teacher", fullName, consent: "not_needed" });
+    await setDemoSession({ userId: `teacher-${prev.phone}`, role: "teacher", fullName, consent: "not_needed" });
     redirect("/teacher");
   }
 

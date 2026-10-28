@@ -4,7 +4,6 @@
 import { AR_LEGAL } from "@/lib/i18n/ar-legal";
 
 export const AR: Record<string, string> = {
-  "(Demo) Open the approval page as a parent": "(تجربة) افتح صفحة الموافقة كوليّ أمر",
   "1 month ago": "قبل شهر",
   "1 week ago": "قبل أسبوع",
   "18 or older": "18 سنة أو أكثر",
@@ -73,8 +72,6 @@ export const AR: Record<string, string> = {
   "Created": "تاريخ الإنشاء",
   "Current subscribers": "المشتركون الحاليون",
   "Delete question": "احذف السؤال",
-  "Demo version with sample data. Login code for any number: 482913": "نسخة تجريبية ببيانات تجريبية. كود الدخول لأي رقم: 482913",
-  "Demo version: the code is": "نسخة تجريبية: الكود هو",
   "Done! Your subscription with Teacher Khaled Al-Omari is active until {date}.": "تم! اشتراكك مع المعلم خالد العمري فعّال لحد {date}.",
   "Edit": "عدّل",
   "Edit your review": "عدّل تقييمك",
@@ -286,7 +283,6 @@ export const AR: Record<string, string> = {
   "The code has 6 digits.": "الكود مكوّن من 6 أرقام.",
   "The code is wrong or has already been used.": "الكود غلط أو سبق استخدامه.",
   "The code is wrong or has expired.": "الكود غلط أو انتهت صلاحيته.",
-  "The demo has no uploaded files. When a teacher uploads a PDF, it appears here.": "ما في ملفات مرفوعة بالتجربة. لما معلم يرفع PDF، بيظهر هون.",
   "The file must be a PDF under 20 MB.": "لازم يكون الملف PDF وأقل من 20 ميغابايت.",
   "The file must be a video.": "لازم يكون الملف فيديو.",
   "The first 3 months are free. After that it is a flat 10% of each subscription. Free trial lessons carry no commission. You set your own prices, and your students stay yours.": "أول 3 شهور مجاناً. بعدها عمولة ثابتة 10% من كل اشتراك. الدروس التجريبية المجانية بدون عمولة. أنت بتحدد أسعارك، وطلابك بيضلوا إلك.",
@@ -307,7 +303,6 @@ export const AR: Record<string, string> = {
   "This video isn't yours.": "هذا الفيديو مش إلك.",
   "Three steps and you're in your first lesson.": "3 خطوات وبتكون بأول درس.",
   "Title": "العنوان",
-  "To try it: use the code": "للتجربة: استخدم الكود",
   "Today": "اليوم",
   "Trial lessons": "دروس تجريبية",
   "Type": "النوع",
@@ -327,7 +322,6 @@ export const AR: Record<string, string> = {
   "Verified: identity and qualifications": "موثّق: الهوية والمؤهلات",
   "Video": "فيديو",
   "Video file": "ملف الفيديو",
-  "Video plays here once Bunny Stream is connected. The demo has no videos.": "الفيديو بيشتغل هون أول ما يتوصل Bunny Stream. التجربة ما فيها فيديوهات.",
   "Video upload works once Bunny Stream is connected (steps are in the README). Videos are stored encrypted and shown to each student through a temporary link.": "رفع الفيديو بيشتغل أول ما يتوصل Bunny Stream (الخطوات في README). الفيديوهات محفوظة مشفّرة، وبتنعرض لكل طالب عبر رابط مؤقت.",
   "Video upload works once Bunny Stream is connected.": "رفع الفيديو بيشتغل أول ما يتوصل Bunny Stream.",
   "Videos, notes, quizzes and live classes with your own teacher. Subscribe with a code from your teacher and track your progress as you go.": "فيديوهات وملاحظات واختبارات وحصص مباشرة مع معلمك. اشترك بكود من معلمك وتابع تقدمك خطوة بخطوة.",
@@ -353,7 +347,6 @@ export const AR: Record<string, string> = {
   "With your subscription you get": "مع اشتراكك بتاخد",
   "Write a short headline.": "اكتب عنوان قصير.",
   "Write the question.": "اكتب السؤال.",
-  "Wrong code. In the demo, the code is 482913.": "الكود غلط. بالتجربة، الكود هو 482913.",
   "Yesterday": "أمس",
   "You can retake the quiz any time.": "تقدر تعيد الاختبار بأي وقت.",
   "You can withdraw your approval and delete the account at any time, by emailing support@hessa.jo.": "تقدر تسحب موافقتك وتحذف الحساب بأي وقت، عبر الإيميل support@hessa.jo.",
@@ -511,5 +504,9 @@ export const AR: Record<string, string> = {
   "Your documents are private. Only the Hessa review team can see them, and students never do.": "وثائقك خاصة. بس فريق المراجعة بحصّة بشوفها، والطلاب أبداً ما بشوفوها.",
   "Last updated: {date}": "آخر تحديث: {date}",
   "Contents": "المحتويات",
+  "Your code is": "الكود تبعك هو",
+  "Wrong code. Check it and try again.": "الكود غلط. تأكد منه وجرّب مرة ثانية.",
+  "No code yet? Use": "ما معك كود؟ استعمل",
+  "Open the approval page as a parent": "افتح صفحة الموافقة كوليّ أمر",
   ...AR_LEGAL,
 };

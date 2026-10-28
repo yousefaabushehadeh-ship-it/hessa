@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter, SiteNav } from "@/components/site";
 import { Icon } from "@/components/ui";
-import { DEMO_MODE } from "@/lib/env";
 import { getT } from "@/lib/i18n-server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -80,7 +79,6 @@ export default async function Services() {
               </div>
             ))}
           </div>
-          {DEMO_MODE && <p className="muted" style={{ marginTop: 18 }}>{t("Demo version: the code is")} 482913</p>}
         </div>
       </section>
       <SiteFooter />

@@ -39,9 +39,6 @@ svg.i.sm{width:16px;height:16px}
 .wrap{max-width:1200px;margin:0 auto}
 
 /* demo bar */
-.demo{background:var(--rail);color:var(--rail-ink);font-size:13px}
-.demo .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:8px}
-.demo .tag{opacity:.8}
 .seg{display:flex;gap:4px;background:rgba(255,255,255,.08);padding:4px;border-radius:999px}
 .seg button{border:0;background:none;color:var(--rail-ink);padding:5px 14px;border-radius:999px;font-size:13px}
 .seg button[aria-pressed="true"]{background:var(--mint);color:var(--mint-ink);font-weight:600}
@@ -429,7 +426,7 @@ footer.site .cols div{display:grid;gap:4px}
   .modal{padding:22px}
 }
 @media (max-width:900px){#app-band{grid-template-columns:1fr!important;padding:24px!important}}
-@media (max-width:560px){.seg button{padding:5px 9px;font-size:12px}.demo .tag{font-size:12px}}
+@media (max-width:560px){.seg button{padding:5px 9px;font-size:12px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .form-error{color:var(--bad-fg);font-size:13.5px}

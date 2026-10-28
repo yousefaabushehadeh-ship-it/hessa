@@ -21,7 +21,7 @@ export default async function Redeem() {
         <RedeemForm />
         {DEMO_MODE && (
           <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>
-            {t("To try it: use the code")} <b dir="ltr">{DEMO_CODE}</b>
+            {t("No code yet? Use")} <b dir="ltr">{DEMO_CODE}</b>
           </p>
         )}
       </div>

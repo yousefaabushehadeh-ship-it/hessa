@@ -128,7 +128,7 @@ const RAW_REVIEWS: [string, string, number, string][] = [
 export const REVIEWS: Review[] = RAW_REVIEWS.map(([author, when, stars, body]) => ({ author, when, stars, body }));
 
 export const DEMO_STUDENT = {
-  id: "demo-student",
+  id: "7f3c9a2e-5b41-4d8e-9a6f-2c1e8b7d4a90",
   fullName: "محمد الشريف",
   firstName: "محمد",
   grade: "توجيهي علمي · جيل 2009",
