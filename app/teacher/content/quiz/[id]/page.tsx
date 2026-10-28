@@ -24,7 +24,7 @@ export default async function QuizEditor({ params }: { params: Promise<{ id: str
         sub={`${found.unit.title} · ${t("Quizzes are graded automatically. Students see the right answer after they submit.")}`}
         who={`${t("Teacher")} ${first}`}
         initial={x.initial}
-        color={x.color}
+        color={x.color} photoUrl={x.photoUrl}
       />
       <div className="kpis">
         <div className="card stat">

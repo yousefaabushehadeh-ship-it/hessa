@@ -20,7 +20,7 @@ export default async function TeacherHome() {
         sub={t("Create access codes for your students, and organize your content from the Content page.")}
         who={`${t("Teacher")} ${first}`}
         initial={x.initial}
-        color={x.color}
+        color={x.color} photoUrl={x.photoUrl}
       />
       <div className="kpis">
         <div className="card stat">

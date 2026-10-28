@@ -42,7 +42,7 @@ export function DashShell({ nav, children, footer }: { nav: NavItem[]; children:
   );
 }
 
-export function TopBar({ title, sub, who, initial, color }: { title: string; sub: string; who: string; initial: string; color: string }) {
+export function TopBar({ title, sub, who, initial, color, photoUrl }: { title: string; sub: string; who: string; initial: string; color: string; photoUrl?: string | null }) {
   return (
     <div className="top">
       <div className="hi">
@@ -50,9 +50,14 @@ export function TopBar({ title, sub, who, initial, color }: { title: string; sub
         <p>{sub}</p>
       </div>
       <div className="me">
-        <div className="av" style={{ width: 44, height: 44, borderRadius: "50%", background: color, fontSize: 18 }}>
-          {initial}
-        </div>
+        {photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- photos come from Supabase Storage or a demo data URL
+          <img className="av" src={photoUrl} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }} />
+        ) : (
+          <div className="av" style={{ width: 44, height: 44, borderRadius: "50%", background: color, fontSize: 18 }}>
+            {initial}
+          </div>
+        )}
         <span>{who}</span>
       </div>
     </div>

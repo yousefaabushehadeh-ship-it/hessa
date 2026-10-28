@@ -407,7 +407,7 @@ footer.site .cols div{display:grid;gap:4px}
   .steps,.grid3{grid-template-columns:1fr}
   .nav-links{display:none}
   .filters,.side{position:static}
-  .dash{grid-template-columns:1fr;background:none}
+  .dash,[dir="ltr"] .dash{grid-template-columns:1fr;background:none}
   .rail{display:none}
   .main{padding:20px 16px calc(96px + env(safe-area-inset-bottom,0px))}
   .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -499,3 +499,18 @@ footer.site a{text-decoration:none}
 .role-card.student{border:2px solid var(--teal)}
 .hero .signin-line{margin-top:14px;font-size:14px;color:var(--muted)}
 @media (max-width:900px){.who,.roles{grid-template-columns:1fr}}
+
+/* Teacher verification checklist */
+.steps-list{list-style:none;padding:0;margin:4px 0 12px;display:grid;gap:10px}
+.steps-list li{display:flex;align-items:center;gap:10px;font-size:14.5px;color:var(--muted)}
+.steps-list li.done{color:var(--ok-fg);font-weight:600}
+
+/* Privacy policy and terms */
+.legal h2{font-size:19px;margin-top:8px}
+.legal p{line-height:1.8}
+.legal-toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;padding:14px 16px;background:var(--soft);border-radius:var(--r-sm);font-size:14px}
+.legal-toc a{color:var(--teal-deep)}
+.legal section{scroll-margin-top:90px}
+.doc-list{list-style:none;padding:0;margin:0;display:grid}
+.doc-list li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.doc-list li:last-child{border-bottom:0}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { TopBar } from "@/components/dash-shell";
 import { getT } from "@/lib/i18n-server";
 import { myTeacher } from "@/lib/teacher-context";
+import { PhotoForm } from "../verification/forms";
 import { ProfileForm } from "./profile-form";
 
 export default async function TeacherProfile() {
@@ -15,8 +16,14 @@ export default async function TeacherProfile() {
         sub={t("This is what students see before they subscribe.")}
         who={`${t("Teacher")} ${first}`}
         initial={x.initial}
-        color={x.color}
+        color={x.color} photoUrl={x.photoUrl}
       />
+      <div className="card panel" style={{ maxWidth: 720, marginBottom: 18 }}>
+        <div className="ph2">
+          <h2>{t("Profile photo")}</h2>
+        </div>
+        <PhotoForm photoUrl={x.photoUrl ?? null} initial={x.initial} color={x.color} />
+      </div>
       <div className="card panel" style={{ maxWidth: 720 }}>
         <ProfileForm
           t={{ headline: x.headline, bio: x.bio, education: x.education, liveSchedule: x.liveSchedule, priceMonth: x.priceMonth, priceTerm: x.priceTerm }}

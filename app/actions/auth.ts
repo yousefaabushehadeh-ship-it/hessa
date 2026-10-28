@@ -93,7 +93,8 @@ async function completeTeacherProfile(prev: LoginState, fd: FormData): Promise<L
   if (!subject) return { ...prev, error: t("Choose the subject you teach.") };
 
   if (DEMO_MODE) {
-    await setDemoSession({ userId: "demo-teacher", role: "teacher", fullName, teacherId: DEMO_TEACHER_ID, consent: "not_needed" });
+    // A new teacher has no page yet: the dashboard shows the verification steps, like the real flow.
+    await setDemoSession({ userId: `demo-teacher-${prev.phone}`, role: "teacher", fullName, consent: "not_needed" });
     redirect("/teacher");
   }
 

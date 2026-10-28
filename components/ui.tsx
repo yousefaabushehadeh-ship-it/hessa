@@ -7,7 +7,10 @@ export function Icon({ name, sm }: { name: string; sm?: boolean }) {
   return <svg className={sm ? "i sm" : "i"} viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ICONS[name] ?? "" }} />;
 }
 
-export function Avatar({ t, size = 48 }: { t: Pick<Teacher, "color" | "initial">; size?: number }) {
+export function Avatar({ t, size = 48 }: { t: Pick<Teacher, "color" | "initial" | "photoUrl">; size?: number }) {
+  if (t.photoUrl)
+    // eslint-disable-next-line @next/next/no-img-element -- photos come from Supabase Storage or a demo data URL
+    return <img className="av" src={t.photoUrl} alt="" width={size} height={size} style={{ width: size, height: size, objectFit: "cover" }} />;
   return (
     <div className="av" style={{ width: size, height: size, background: t.color, fontSize: Math.round(size * 0.42) }}>
       {t.initial}

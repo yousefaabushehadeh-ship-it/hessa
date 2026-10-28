@@ -13,12 +13,12 @@ type TeacherRow = {
   id: string; slug: string; name: string; initial: string; subject: string; grade: string; city: string;
   years: number; rating: number; review_count: number; student_count: number; price_month: number;
   price_term: number; color: string; badge: string | null; headline: string; education: string;
-  live_schedule: string; bio: string; verified: boolean;
+  live_schedule: string; bio: string; verified: boolean; photo_url: string | null;
   units?: { id: string; title: string; position: number; lessons: { id: string; title: string; type: Lesson["type"]; meta: string; is_free: boolean; position: number }[] }[];
 };
 
 const TEACHER_COLS =
-  "id, slug, name, initial, subject, grade, city, years, rating, review_count, student_count, price_month, price_term, color, badge, headline, education, live_schedule, bio, verified";
+  "id, slug, name, initial, subject, grade, city, years, rating, review_count, student_count, price_month, price_term, color, badge, headline, education, live_schedule, bio, verified, photo_url";
 
 function fromRow(r: TeacherRow): Teacher {
   const units: Unit[] = (r.units ?? [])
@@ -35,7 +35,7 @@ function fromRow(r: TeacherRow): Teacher {
     id: r.id, slug: r.slug, name: r.name, initial: r.initial, subject: r.subject, grade: r.grade, city: r.city,
     years: r.years, rating: Number(r.rating), reviewCount: r.review_count, studentCount: r.student_count,
     priceMonth: Number(r.price_month), priceTerm: Number(r.price_term), color: r.color, badge: r.badge,
-    headline: r.headline, education: r.education, liveSchedule: r.live_schedule, bio: r.bio, verified: r.verified, units,
+    headline: r.headline, education: r.education, liveSchedule: r.live_schedule, bio: r.bio, verified: r.verified, photoUrl: r.photo_url, units,
   };
 }
 
