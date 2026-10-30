@@ -30,6 +30,7 @@ export async function updateProfile(_prev: FormState, fd: FormData): Promise<For
     live_schedule: String(fd.get("live") ?? "").trim().slice(0, 80),
     price_month: num(fd.get("priceMonth")),
     price_term: num(fd.get("priceTerm")),
+    cliq_alias: String(fd.get("cliq") ?? "").trim().slice(0, 40),
   };
   if (!patch.headline) return { error: t("Write a short headline.") };
   if (!(patch.price_month >= 1 && patch.price_month <= 500) || !(patch.price_term >= 1 && patch.price_term <= 1500))
@@ -37,7 +38,7 @@ export async function updateProfile(_prev: FormState, fd: FormData): Promise<For
 
   if (DEMO_MODE) {
     const t = TEACHERS.find((x) => x.id === id)!;
-    Object.assign(t, { headline: patch.headline, bio: patch.bio, education: patch.education, liveSchedule: patch.live_schedule, priceMonth: patch.price_month, priceTerm: patch.price_term });
+    Object.assign(t, { headline: patch.headline, bio: patch.bio, education: patch.education, liveSchedule: patch.live_schedule, priceMonth: patch.price_month, priceTerm: patch.price_term, cliqAlias: patch.cliq_alias });
   } else {
     const supabase = await supabaseServer();
     const { error } = await supabase.from("teachers").update(patch).eq("id", id);
@@ -66,22 +67,44 @@ export async function addUnit(_prev: FormState, fd: FormData): Promise<FormState
 }
 
 // Videos go through app/actions/video.ts (direct upload to Bunny Stream).
-const TYPES: LessonType[] = ["pdf", "quiz", "live"];
+const TYPES: LessonType[] = ["pdf", "worksheet", "quiz", "live"];
+const FILE_MAX_MB = 25;
 
+export type UploadTicket = { signedUrl: string; path: string };
+
+/**
+ * Step 1 of a PDF upload: the browser gets a one-time URL and sends the file straight to Storage,
+ * so big files never pass through our server (hosting limits a request to a few MB).
+ */
+export async function startMaterialUpload(type: string, size: number): Promise<{ ticket?: UploadTicket; demo?: boolean; error?: string }> {
+  const t = await getT();
+  const id = await myTeacherId();
+  if (type !== "application/pdf" || size > FILE_MAX_MB * 1024 * 1024) return { error: t("The file must be a PDF under {n} MB.", { n: FILE_MAX_MB }) };
+  if (DEMO_MODE) return { demo: true };
+  // The first folder must be the teacher id: the storage policy checks it.
+  const path = `${id}/${randomUUID()}.pdf`;
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.storage.from("materials").createSignedUploadUrl(path);
+  if (error || !data) return { error: t("We couldn't prepare the upload. Please try again shortly.") };
+  return { ticket: { signedUrl: data.signedUrl, path } };
+}
+
+/** Step 2 (or the only step, for quizzes and live classes): save the item. `path` is set when a PDF was uploaded. */
 export async function addLesson(_prev: FormState, fd: FormData): Promise<FormState> {
   const t = await getT();
   const id = await myTeacherId();
   const unitId = String(fd.get("unit") ?? "");
-  const title = String(fd.get("title") ?? "").trim();
+  const title = String(fd.get("title") ?? "").trim().slice(0, 160);
   const type = String(fd.get("type")) as LessonType;
-  const meta = String(fd.get("meta") ?? "").trim();
+  const meta = String(fd.get("meta") ?? "").trim().slice(0, 60);
   const isFree = fd.get("free") === "on";
-  const file = fd.get("file");
+  const path = String(fd.get("path") ?? "") || null;
+  const hasFile = Boolean(path) || fd.get("demoFile") === "1";
+  const tries = Math.min(20, Math.max(1, Math.floor(num(fd.get("tries")) || 3)));
   if (title.length < 3) return { error: t("Enter the item title.") };
   if (!TYPES.includes(type)) return { error: t("Choose the item type.") };
-  const hasFile = file instanceof File && file.size > 0;
-  if (type === "pdf" && !hasFile) return { error: t("Choose a PDF file.") };
-  if (hasFile && (file.type !== "application/pdf" || file.size > 20 * 1024 * 1024)) return { error: t("The file must be a PDF under 20 MB.") };
+  if ((type === "pdf" || type === "worksheet") && !hasFile) return { error: t("Choose a PDF file.") };
+  if (path && !path.startsWith(`${id}/`)) return { error: t("We couldn't upload the file.") };
 
   if (DEMO_MODE) {
     const unit = TEACHERS.find((x) => x.id === id)?.units.find((u) => u.id === unitId);
@@ -91,17 +114,10 @@ export async function addLesson(_prev: FormState, fd: FormData): Promise<FormSta
     const supabase = await supabaseServer();
     const { data: unit } = await supabase.from("units").select("id").eq("id", unitId).eq("teacher_id", id).maybeSingle();
     if (!unit) return { error: t("Choose the chapter.") };
-    let storagePath: string | null = null;
-    if (hasFile) {
-      // The first folder must be the teacher id: the storage policy checks it.
-      storagePath = `${id}/${randomUUID()}.pdf`;
-      const { error } = await supabase.storage.from("materials").upload(storagePath, file, { contentType: "application/pdf" });
-      if (error) return { error: t("We couldn't upload the file.") };
-    }
     const { count } = await supabase.from("lessons").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
     const { error } = await supabase
       .from("lessons")
-      .insert({ unit_id: unitId, title, type, meta, is_free: isFree, position: count ?? 0, storage_path: storagePath });
+      .insert({ unit_id: unitId, title, type, meta, is_free: isFree, position: count ?? 0, storage_path: path, max_attempts: tries });
     if (error) return { error: t("We couldn't save the item.") };
   }
   revalidatePath("/", "layout");

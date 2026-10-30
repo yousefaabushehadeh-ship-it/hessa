@@ -220,11 +220,14 @@ export default async function TeacherPage({ params }: { params: Params }) {
                     </span>
                     <span className="pr num">{t("{n} JOD", { n: teacher.priceTerm })}</span>
                   </div>
-                  <Link className="btn btn-pri" href={session ? "/student/redeem" : "/login/student?next=/student/redeem"}>
+                  <Link className="btn btn-pri" href={session ? `/student/subscribe/${teacher.slug}` : `/signup/student?next=/student/subscribe/${teacher.slug}`}>
+                    {t("Subscribe now")}
+                  </Link>
+                  <Link className="btn btn-ghost" href={session ? "/student/redeem" : "/login/student?next=/student/redeem"}>
                     {t("I have an access code")}
                   </Link>
                   <p className="muted" style={{ fontSize: 13, textAlign: "center" }}>
-                    {t("Pay your teacher and ask them for an access code. Online payment is coming soon.")}
+                    {t("Pay by CliQ or e-wallet. Your teacher confirms the transfer and your materials open.")}
                   </p>
                 </>
               )}

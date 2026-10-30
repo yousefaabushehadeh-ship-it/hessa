@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DEMO_MODE } from "@/lib/env";
+import { demoPlatform } from "@/lib/demo-platform";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { Role, Session } from "@/lib/types";
 
@@ -11,7 +12,10 @@ export async function getSession(): Promise<Session | null> {
     const raw = (await cookies()).get(DEMO_COOKIE)?.value;
     if (!raw) return null;
     try {
-      return JSON.parse(raw) as Session;
+      const s = JSON.parse(raw) as Session;
+      // A demo applicant the admin approved gets their new page without signing in again.
+      if (s.role === "teacher" && !s.teacherId) s.teacherId = demoPlatform.applicants.find((a) => a.userId === s.userId)?.teacherId;
+      return s;
     } catch {
       return null;
     }
@@ -19,13 +23,17 @@ export async function getSession(): Promise<Session | null> {
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return null;
-  const { data: profile } = await supabase.from("profiles").select("role, full_name, consent").eq("id", data.user.id).single();
-  const { data: teacher } = await supabase.from("teachers").select("id").eq("user_id", data.user.id).maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("role, full_name, consent, grade").eq("id", data.user.id).single();
+  const role = (profile?.role ?? "student") as Role;
+  const { data: teacher } = role === "teacher" ? await supabase.from("teachers").select("id").eq("user_id", data.user.id).maybeSingle() : { data: null };
+  const { data: school } = role === "school" ? await supabase.from("schools").select("id").eq("owner_id", data.user.id).maybeSingle() : { data: null };
   return {
     userId: data.user.id,
-    role: (profile?.role ?? "student") as Role,
+    role,
     fullName: profile?.full_name ?? "",
+    grade: role === "student" ? profile?.grade ?? undefined : undefined,
     teacherId: teacher?.id,
+    schoolId: school?.id,
     consent: profile?.consent === "revoked" ? "pending" : profile?.consent ?? "pending",
   };
 }
@@ -37,10 +45,15 @@ export async function requireSession(): Promise<Session> {
   return s;
 }
 
+/** Each role's own dashboard. */
+export function homeFor(role: Role): string {
+  return role === "admin" ? "/admin" : role === "school" ? "/school" : role === "teacher" ? "/teacher" : "/student";
+}
+
 /** Sends people who aren't signed in to their portal, and people with the wrong role to their own dashboard. */
 export async function requireRole(role: Role): Promise<Session> {
   const s = await getSession();
-  if (!s) redirect(role === "teacher" ? "/login/teacher" : "/login/student");
-  if (s.role !== role && s.role !== "admin") redirect(s.role === "teacher" ? "/teacher" : "/student");
+  if (!s) redirect(role === "student" ? "/login/student" : `/login/${role}`);
+  if (s.role !== role) redirect(homeFor(s.role));
   return s;
 }

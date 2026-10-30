@@ -4,7 +4,7 @@ insert into public.units (id, teacher_id, title, position) values ('00000000-000
 insert into public.lessons (unit_id, title, type, meta, is_free, position) values ('00000000-0000-4000-9001-000000000001', 'قواعد الاشتقاق', 'video', '31 دقيقة', true, 0);
 insert into public.lessons (unit_id, title, type, meta, is_free, position) values ('00000000-0000-4000-9001-000000000001', 'مشتقات الاقترانات المثلثية', 'video', '38 دقيقة', false, 1);
 insert into public.lessons (unit_id, title, type, meta, is_free, position) values ('00000000-0000-4000-9001-000000000001', 'قاعدة السلسلة', 'video', '42 دقيقة', false, 2);
-insert into public.lessons (unit_id, title, type, meta, is_free, position) values ('00000000-0000-4000-9001-000000000001', 'ورقة عمل: الاشتقاق', 'pdf', '8 صفحات', false, 3);
+insert into public.lessons (unit_id, title, type, meta, is_free, position) values ('00000000-0000-4000-9001-000000000001', 'ورقة عمل: الاشتقاق', 'worksheet', '8 صفحات', false, 3);
 insert into public.lessons (unit_id, title, type, meta, is_free, position) values ('00000000-0000-4000-9001-000000000001', 'اختبار قصير: قواعد الاشتقاق', 'quiz', '3 أسئلة', false, 4);
 insert into public.units (id, teacher_id, title, position) values ('00000000-0000-4000-9001-000000000002', '00000000-0000-4000-8000-000000000001', 'الوحدة الثانية: تطبيقات التفاضل', 1);
 insert into public.lessons (unit_id, title, type, meta, is_free, position) values ('00000000-0000-4000-9001-000000000002', 'القيم القصوى', 'video', '45 دقيقة', false, 0);

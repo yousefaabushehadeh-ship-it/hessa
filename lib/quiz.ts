@@ -1,5 +1,5 @@
 import { DEMO_MODE } from "@/lib/env";
-import { demo2 } from "@/lib/demo-store";
+import { DEMO_MAX_TRIES, demo2 } from "@/lib/demo-store";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { QuizQuestion, QuizQuestionFull, QuizResult } from "@/lib/types";
 
@@ -13,7 +13,10 @@ export async function getQuizForStudent(lessonId: string): Promise<QuizQuestion[
 }
 
 export async function getLastAttempt(userId: string, lessonId: string): Promise<QuizResult | null> {
-  if (DEMO_MODE) return demo2.attempts[`${userId}:${lessonId}`] ?? null;
+  if (DEMO_MODE) {
+    const last = demo2.attempts[`${userId}:${lessonId}`];
+    return last ? { ...last, left: DEMO_MAX_TRIES - (demo2.tries?.[`${userId}:${lessonId}`] ?? 1) } : null;
+  }
   const supabase = await supabaseServer();
   const { data } = await supabase
     .from("quiz_attempts")
@@ -24,9 +27,10 @@ export async function getLastAttempt(userId: string, lessonId: string): Promise<
     .limit(1)
     .maybeSingle();
   if (!data) return null;
-  // Right answers are only revealed after an attempt, through submit_quiz; here we
-  // just show the score.
-  return { score: data.score, total: data.total, answers: data.answers, correct: [] };
+  const { count } = await supabase.from("quiz_attempts").select("id", { count: "exact", head: true }).eq("student_id", userId).eq("lesson_id", lessonId);
+  const { data: lesson } = await supabase.from("lessons").select("max_attempts").eq("id", lessonId).maybeSingle();
+  // Right answers are only revealed by submit_quiz, after the last try; here we just show the score.
+  return { score: data.score, total: data.total, answers: data.answers, correct: [], left: Math.max(0, (lesson?.max_attempts ?? 3) - (count ?? 0)) };
 }
 
 /** For the teacher's own quiz editor (RLS limits this to their lessons). */

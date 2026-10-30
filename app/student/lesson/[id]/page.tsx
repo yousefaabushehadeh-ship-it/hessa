@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { markDone } from "@/app/actions/student";
+import { HandIn } from "@/components/hand-in";
 import { QuizRunner } from "@/components/quiz-runner";
 import { Icon, LessonIcon, typeLabel } from "@/components/ui";
 import { BUNNY_ENABLED, embedUrl } from "@/lib/bunny";
 import { DEMO_MODE } from "@/lib/env";
 import { findLesson, getCompletedLessons, getMySubscriptions } from "@/lib/data";
 import { getLang, getT } from "@/lib/i18n-server";
+import { listMySubmissions } from "@/lib/platform";
 import { getLastAttempt, getQuizForStudent } from "@/lib/quiz";
 import { requireRole } from "@/lib/session";
-import { supabaseAdmin } from "@/lib/supabase/server";
 
 export default async function LessonView({ params }: { params: Promise<{ id: string }> }) {
   const t = await getT();
@@ -27,8 +28,11 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
     return (
       <div className="card center-card">
         <h1 style={{ fontSize: 22 }}>{t("This lesson is for subscribers")}</h1>
-        <p className="muted">{t("Subscribe with {name} to open all their lessons. Ask them for an access code.", { name: teacher.name })}</p>
-        <Link className="btn btn-pri" href="/student/redeem">
+        <p className="muted">{t("Subscribe with {name} to open all their lessons.", { name: teacher.name })}</p>
+        <Link className="btn btn-pri" href={`/student/subscribe/${teacher.slug}`}>
+          {t("Subscribe now")}
+        </Link>
+        <Link className="btn btn-ghost" href="/student/redeem">
           {t("I have a code")}
         </Link>
         <Link className="btn btn-ghost" href={`/${teacher.slug}`}>
@@ -38,13 +42,11 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
     );
   }
 
-  // Files sit in a private bucket. The server checks access above, then hands out a
-  // link that stops working after 10 minutes.
-  let fileUrl: string | null = null;
-  if (!DEMO_MODE && storagePath) {
-    const { data } = await supabaseAdmin().storage.from("materials").createSignedUrl(storagePath, 600);
-    fileUrl = data?.signedUrl ?? null;
-  }
+  // PDFs come through /api/material, which checks access again and stamps every page
+  // with the student's number and account id.
+  const hasFile = (lesson.type === "pdf" || lesson.type === "worksheet") && (DEMO_MODE || Boolean(storagePath));
+  const fileUrl = hasFile ? `/api/material/${lesson.id}` : null;
+  const mine = lesson.type === "worksheet" ? await listMySubmissions(s.userId, lesson.id) : [];
   const videoUrl = BUNNY_ENABLED && videoId ? embedUrl(videoId) : null;
   const quiz = lesson.type === "quiz" ? await getQuizForStudent(lesson.id) : [];
   const last = lesson.type === "quiz" ? await getLastAttempt(s.userId, lesson.id) : null;
@@ -76,7 +78,7 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
             {videoUrl ? (
               <iframe src={videoUrl} title={lesson.title} allow="accelerometer; gyroscope; encrypted-media; picture-in-picture" allowFullScreen />
             ) : fileUrl ? (
-              <iframe src={`${fileUrl}#toolbar=0`} title={lesson.title} />
+              <iframe src={fileUrl} title={lesson.title} />
             ) : (
               <div className="empty" style={{ minHeight: 320, display: "grid", placeItems: "center" }}>
                 {lesson.type === "video"
@@ -106,10 +108,16 @@ export default async function LessonView({ params }: { params: Promise<{ id: str
                 </button>
               </form>
             )}
+            {fileUrl && (
+              <a className="btn btn-ghost btn-sm" href={`${fileUrl}?dl=1`}>
+                <Icon name="download" sm /> {t("Download")}
+              </a>
+            )}
             <span className="muted" style={{ fontSize: 13 }}>
-              {t("This material has a watermark with your name. Sharing it outside the platform is not allowed.")}
+              {t("This material carries your number and account id. Sharing it outside the platform is not allowed.")}
             </span>
           </div>
+          {lesson.type === "worksheet" && <HandIn lessonId={lesson.id} mine={mine} />}
         </div>
       )}
     </>

@@ -7,6 +7,8 @@
 - Quiz answers never leave the database for students: read questions through `quiz_for_student`, grade through `submit_quiz`.
 - Video: `lib/bunny.ts` signs uploads (TUS from the browser) and embed URLs. Never send `BUNNY_*` keys to the client.
 - To test SQL locally, Postgres 16 is installed: load a small stub for Supabase's `auth`/`storage` schemas, then the migrations.
+- Roles: student, teacher, school, admin (`lib/nav.ts` has each menu; `requireRole` sends people to their own dashboard). Admin pages read with the service key after `requireRole("admin")` (`lib/platform.ts`).
+- Big files (lesson PDFs, hand-ins, documents) go from the browser to Storage through a signed upload URL, never through a server action (hosting caps a request at a few MB). Lesson PDFs are served by `app/api/material/[id]`, which checks access and stamps the student on every page.
 - Mutations are server actions in `app/actions/*`, returning `{ ok?, error? }` for `useActionState`.
 - Security lives in the database: RLS policies and `protect_fields` in `supabase/migrations/0001_init.sql`. New tables need RLS on. New migrations go in a new numbered file.
 - Before pushing: `npm run typecheck && npm run build`.

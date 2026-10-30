@@ -54,6 +54,11 @@ export default async function Content() {
                               {t("Questions")}
                             </Link>
                           )}
+                          {l.type === "worksheet" && (
+                            <Link className="link" href={`/teacher/worksheets?lesson=${l.id}`}>
+                              {t("Hand-ins")}
+                            </Link>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -72,7 +77,7 @@ export default async function Content() {
           </div>
           <div className="card panel">
             <div className="ph2">
-              <h2>{t("A file, quiz or live class")}</h2>
+              <h2>{t("A file, worksheet, quiz or live class")}</h2>
             </div>
             <AddLessonForm units={x.units.map((u) => ({ id: u.id, title: u.title }))} />
           </div>

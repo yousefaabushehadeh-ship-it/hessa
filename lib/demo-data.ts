@@ -14,7 +14,7 @@ const RAW: RawTeacher[] = [
  edu:'ماجستير رياضيات تطبيقية، الجامعة الأردنية',live:'السبت والثلاثاء · 7:00 مساءً',
  bio:'بدرّس رياضيات التوجيهي من 14 سنة بمدارس عمّان ومراكزها. بقسّم كل وحدة لدروس قصيرة، وبعد كل درس في ورقة عمل واختبار قصير بيصحّح لحاله، وكل أسبوعين حصة مباشرة لحل أسئلة الطلاب والأوراق الوزارية.',
  units:[
-  {name:'الوحدة الأولى: التفاضل',items:[['قواعد الاشتقاق','video','31 دقيقة',1],['مشتقات الاقترانات المثلثية','video','38 دقيقة'],['قاعدة السلسلة','video','42 دقيقة'],['ورقة عمل: الاشتقاق','pdf','8 صفحات'],['اختبار قصير: قواعد الاشتقاق','quiz','3 أسئلة']]},
+  {name:'الوحدة الأولى: التفاضل',items:[['قواعد الاشتقاق','video','31 دقيقة',1],['مشتقات الاقترانات المثلثية','video','38 دقيقة'],['قاعدة السلسلة','video','42 دقيقة'],['ورقة عمل: الاشتقاق','worksheet','8 صفحات'],['اختبار قصير: قواعد الاشتقاق','quiz','3 أسئلة']]},
   {name:'الوحدة الثانية: تطبيقات التفاضل',items:[['القيم القصوى','video','45 دقيقة'],['التقعّر ونقاط الانعطاف','video','40 دقيقة'],['اختبار النهايات والاتصال','quiz','20 سؤال']]},
   {name:'الوحدة الثالثة: التكامل',items:[['التكامل غير المحدود','video','36 دقيقة'],['التكامل بالتعويض','live','السبت 7:00 م'],['حل ورقة وزارية 2024','video','45 دقيقة']]}
  ]},
@@ -75,6 +75,7 @@ const RAW: RawTeacher[] = [
  ]}
 ];
 
+export const DEMO_SCHOOL_ID = "nukhba";
 const SLUGS: Record<string, string> = {khaled:'khaled-omari',sami:'sami-najjar',rana:'rana-hourani',laith:'laith-momani',hiba:'hiba-zoubi',omar:'omar-khatib',dana:'dana-qudah',yazan:'yazan-tarawneh'};
 
 // Demo edits (prices, new lessons) mutate this list. It lives on globalThis because
@@ -102,6 +103,9 @@ export const TEACHERS: Teacher[] = (g.__hessaTeachers ??= RAW.map((t) => ({
   liveSchedule: t.live,
   bio: t.bio,
   verified: true,
+  // Yazan teaches at the sample school, to show a school's teachers.
+  schoolId: t.id === "yazan" ? DEMO_SCHOOL_ID : null,
+  cliqAlias: SLUGS[t.id].replace(/-/g, ".").toUpperCase(),
   units: t.units.map((u, ui) => ({
     id: `${t.id}-u${ui}`,
     title: u.name,
