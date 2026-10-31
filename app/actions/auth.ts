@@ -7,7 +7,7 @@ import { DEMO_MODE, DEMO_OTP, SITE_URL } from "@/lib/env";
 import { DEMO_SCHOOL_ID, DEMO_STUDENT, DEMO_TEACHER_ID, TEACHERS } from "@/lib/demo-data";
 import { DEMO_SUBS_COOKIE } from "@/lib/data";
 import { demoPlatform } from "@/lib/demo-platform";
-import { CITIES, GRADES, SUBJECT_LIST, TEACHER_GRADES } from "@/lib/catalog";
+import { GRADES, SUBJECT_LIST, TEACHER_GRADES } from "@/lib/catalog";
 import { createTeacherPage, demoTeacherPage } from "@/lib/teacher-pages";
 import { DEMO_COOKIE, getSession, homeFor } from "@/lib/session";
 import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
@@ -116,11 +116,9 @@ async function completeTeacherProfile(prev: LoginState, fd: FormData): Promise<L
   const fullName = String(fd.get("name") ?? "").trim().slice(0, 80);
   const subject = pick(fd.get("subject"), SUBJECT_LIST);
   const grade = pick(fd.get("grade"), TEACHER_GRADES);
-  const city = pick(fd.get("city"), CITIES);
   if (fullName.length < 3) return { ...prev, error: t("Enter your full name.") };
   if (!subject) return { ...prev, error: t("Choose the subject you teach.") };
   if (!grade) return { ...prev, error: t("Choose the grade you teach.") };
-  if (!city) return { ...prev, error: t("Choose your city.") };
   const phone = `+962${prev.phone}`;
 
   if (DEMO_MODE) {
@@ -129,10 +127,10 @@ async function completeTeacherProfile(prev: LoginState, fd: FormData): Promise<L
     let teacherId: string | undefined;
     if (invite) {
       const school = demoPlatform.schools.find((x) => x.id === invite.schoolId);
-      teacherId = demoTeacherPage({ name: fullName, subject: invite.subject, grade: invite.grade, city: school?.city || city, verified: Boolean(school?.verified), schoolId: invite.schoolId });
+      teacherId = demoTeacherPage({ name: fullName, subject: invite.subject, grade: invite.grade, city: "", verified: Boolean(school?.verified), schoolId: invite.schoolId });
       invite.used = true;
     } else if (!demoPlatform.applicants.some((a) => a.userId === userId)) {
-      demoPlatform.applicants.unshift({ userId, name: fullName, phone, subject, grade, city, createdAt: new Date().toISOString().slice(0, 10) });
+      demoPlatform.applicants.unshift({ userId, name: fullName, phone, subject, grade, city: "", createdAt: new Date().toISOString().slice(0, 10) });
     }
     // Without a page, the dashboard shows the verification steps, like the real flow.
     await setDemoSession({ userId, role: "teacher", fullName, teacherId, consent: "not_needed" });
@@ -143,40 +141,38 @@ async function completeTeacherProfile(prev: LoginState, fd: FormData): Promise<L
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return { step: "phone", as: "teacher", signup: prev.signup, error: t("Your session has ended. Please sign in again.") };
   const uid = auth.user.id;
-  await supabase.from("profiles").update({ full_name: fullName, teach_subject: subject, teach_grade: grade, city, is_minor: false }).eq("id", uid);
+  await supabase.from("profiles").update({ full_name: fullName, teach_subject: subject, teach_grade: grade, is_minor: false }).eq("id", uid);
   // Users can't change their own role or consent (protect_fields), so the server does it.
   const admin = supabaseAdmin();
   await admin.from("profiles").update({ role: "teacher", consent: "not_needed" }).eq("id", uid).eq("role", "student");
   const { data: invite } = await admin
     .from("school_invites")
-    .select("id, school_id, subject, grade, schools(verified, city)")
+    .select("id, school_id, subject, grade, schools(verified)")
     .eq("phone", phone)
     .is("used_by", null)
     .order("created_at")
     .limit(1)
     .maybeSingle();
   if (invite) {
-    const school = invite.schools as unknown as { verified: boolean; city: string } | null;
-    const id = await createTeacherPage({ userId: uid, name: fullName, subject: invite.subject, grade: invite.grade, city: school?.city || city, verified: Boolean(school?.verified), schoolId: invite.school_id });
+    const school = invite.schools as unknown as { verified: boolean } | null;
+    const id = await createTeacherPage({ userId: uid, name: fullName, subject: invite.subject, grade: invite.grade, city: "", verified: Boolean(school?.verified), schoolId: invite.school_id });
     if (id) await admin.from("school_invites").update({ used_by: uid }).eq("id", invite.id);
   }
   redirect("/teacher");
 }
 
-/** Last step of school sign-up: the school's name and city. The team verifies the school before its teachers go public. */
+/** Last step of school sign-up: the school's name. The team verifies the school before its teachers go public. */
 async function completeSchoolProfile(prev: LoginState, fd: FormData): Promise<LoginState> {
   const t = await getT();
   const fullName = String(fd.get("name") ?? "").trim().slice(0, 80);
   const schoolName = String(fd.get("school") ?? "").trim().slice(0, 120);
-  const city = pick(fd.get("city"), CITIES);
   if (fullName.length < 3) return { ...prev, error: t("Enter your full name.") };
   if (schoolName.length < 3) return { ...prev, error: t("Enter the school's name.") };
-  if (!city) return { ...prev, error: t("Choose your city.") };
 
   if (DEMO_MODE) {
     const id = `school-${prev.phone}`;
     if (!demoPlatform.schools.some((x) => x.id === id))
-      demoPlatform.schools.unshift({ id, ownerId: `school-owner-${prev.phone}`, name: schoolName, city, verified: false, ownerName: fullName, createdAt: new Date().toISOString().slice(0, 10) });
+      demoPlatform.schools.unshift({ id, ownerId: `school-owner-${prev.phone}`, name: schoolName, city: "", verified: false, ownerName: fullName, createdAt: new Date().toISOString().slice(0, 10) });
     await setDemoSession({ userId: `school-owner-${prev.phone}`, role: "school", fullName, schoolId: id, consent: "not_needed" });
     redirect("/school");
   }
@@ -185,10 +181,10 @@ async function completeSchoolProfile(prev: LoginState, fd: FormData): Promise<Lo
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return { step: "phone", as: "school", signup: prev.signup, error: t("Your session has ended. Please sign in again.") };
   const uid = auth.user.id;
-  await supabase.from("profiles").update({ full_name: fullName, city, is_minor: false }).eq("id", uid);
+  await supabase.from("profiles").update({ full_name: fullName, is_minor: false }).eq("id", uid);
   const admin = supabaseAdmin();
   await admin.from("profiles").update({ role: "school", consent: "not_needed" }).eq("id", uid).eq("role", "student");
-  const { error } = await admin.from("schools").insert({ owner_id: uid, name: schoolName, city });
+  const { error } = await admin.from("schools").insert({ owner_id: uid, name: schoolName });
   if (error) return { ...prev, error: t("We couldn't create the school account.") };
   redirect("/school");
 }

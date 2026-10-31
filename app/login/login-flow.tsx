@@ -26,7 +26,6 @@ type Props = {
   subjects?: Option[];
   grades?: Option[];
   teacherGrades?: Option[];
-  cities?: Option[];
 };
 
 function Select({ id, name, label, options }: { id: string; name: string; label: string; options: Option[] }) {
@@ -46,7 +45,7 @@ function Select({ id, name, label, options }: { id: string; name: string; label:
   );
 }
 
-export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [], grades = [], teacherGrades = [], cities = [] }: Props) {
+export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [], grades = [], teacherGrades = [] }: Props) {
   const t = useT();
   const [state, action, pending] = useActionState(dispatch, { step: startAtProfile ? "profile" : "phone", as, next, signup } as LoginState);
   const idx = STEPS.indexOf(state.step);
@@ -161,7 +160,6 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
           </div>
           <Select id="sub" name="subject" label={t("Subject you teach")} options={subjects} />
           <Select id="tgr" name="grade" label={t("Grade you teach")} options={teacherGrades} />
-          <Select id="tct" name="city" label={t("City")} options={cities} />
           <p className="muted" style={{ fontSize: 13 }}>
             {t("We check every teacher's identity and qualifications before their page goes public. If your school added you, your page opens right away.")}
           </p>
@@ -187,7 +185,6 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
             </label>
             <input className="field" id="sch" name="school" required />
           </div>
-          <Select id="sct" name="city" label={t("City")} options={cities} />
           <p className="muted" style={{ fontSize: 13 }}>
             {t("We call the school to verify it. Once verified, the teachers you add go public right away.")}
           </p>

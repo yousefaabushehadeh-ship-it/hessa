@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const x = await getTeacherBySlug((await params).slug);
   if (!x) return {};
   return {
-    title: t("Teacher {name}, {subject} teacher in {city}", { name: x.name, subject: dataLabel(lang, x.subject), city: dataLabel(lang, x.city) }),
+    title: t("Teacher {name}, {subject} teacher", { name: x.name, subject: dataLabel(lang, x.subject) }),
     description: x.headline,
   };
 }
@@ -56,9 +56,6 @@ export default async function TeacherPage({ params }: { params: Params }) {
                 <div className="tags">
                   <span className="pill p-info">{dataLabel(lang, teacher.subject)}</span>
                   <span className="pill p-info">{dataLabel(lang, teacher.grade)}</span>
-                  <span className="pill p-info">
-                    <Icon name="pin" sm /> {dataLabel(lang, teacher.city)}
-                  </span>
                   {teacher.badge && <span className="pill p-ok">{teacher.badge}</span>}
                 </div>
                 <div className="kv">
