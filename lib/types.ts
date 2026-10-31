@@ -61,6 +61,8 @@ export type Session = {
   grade?: string;
   /** For school accounts: the school they run. */
   schoolId?: string;
+  /** Demo only: the new school's details, so a fresh server can rebuild it (sample data lives in memory). */
+  demoSchool?: { name: string; city: string };
   consent?: "not_needed" | "pending" | "approved";
 };
 

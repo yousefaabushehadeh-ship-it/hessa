@@ -200,7 +200,7 @@ async function completeSchoolProfile(prev: LoginState, fd: FormData): Promise<Lo
     const id = `school-${prev.phone}`;
     if (!demoPlatform.schools.some((x) => x.id === id))
       demoPlatform.schools.unshift({ id, ownerId: `school-owner-${prev.phone}`, name: schoolName, city, verified: false, ownerName: fullName, createdAt: new Date().toISOString().slice(0, 10) });
-    await setDemoSession({ userId: `school-owner-${prev.phone}`, role: "school", fullName, schoolId: id, consent: "not_needed" });
+    await setDemoSession({ userId: `school-owner-${prev.phone}`, role: "school", fullName, schoolId: id, demoSchool: { name: schoolName, city }, consent: "not_needed" });
     redirect("/school");
   }
 
