@@ -20,7 +20,7 @@ export default async function Content() {
         sub={t("Organize your lessons into chapters, and pick which ones are free to try.")}
         who={`${t("Teacher")} ${first}`}
         initial={x.initial}
-        color={x.color}
+        color={x.color} photoUrl={x.photoUrl}
       />
       <div className="g2">
         <div className="col">

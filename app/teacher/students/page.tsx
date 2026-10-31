@@ -14,7 +14,7 @@ export default async function Students() {
   const soon = rows.filter((r) => new Date(r.endsOn).getTime() - Date.now() < 7 * 864e5).length;
   return (
     <>
-      <TopBar title={t("Students")} sub={t("Who is subscribed, how far they've got, and who needs a follow-up.")} who={`${t("Teacher")} ${first}`} initial={x.initial} color={x.color} />
+      <TopBar title={t("Students")} sub={t("Who is subscribed, how far they've got, and who needs a follow-up.")} who={`${t("Teacher")} ${first}`} initial={x.initial} color={x.color} photoUrl={x.photoUrl} />
       <div className="kpis">
         <div className="card stat">
           <div className="lbl">{t("Current subscribers")}</div>

@@ -104,7 +104,7 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
           {demo && (
             <div className="hint">
               <span>
-                {t("Demo version: the code is")} <b className="num">482913</b>
+                {t("Your code is")} <b className="num">482913</b>
               </span>
             </div>
           )}

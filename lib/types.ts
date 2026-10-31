@@ -33,8 +33,15 @@ export type Teacher = {
   liveSchedule: string;
   bio: string;
   verified: boolean;
+  /** Uploaded by the teacher; without one, the initial on a colored square is shown. */
+  photoUrl?: string | null;
   units: Unit[];
 };
+
+export type DocKind = "id" | "degree" | "certificate" | "experience" | "other";
+
+/** A file a teacher uploads so the Hessa team can verify them. */
+export type TeacherDoc = { id: string; kind: DocKind; fileName: string; status: "pending" | "approved" | "rejected"; note: string | null; createdAt: string };
 
 export type Review = { author: string; when: string; stars: number; body: string };
 

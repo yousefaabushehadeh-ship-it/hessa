@@ -28,7 +28,7 @@ npm run dev
 ## ربط Supabase (التشغيل الحقيقي)
 
 1. اعمل مشروع على https://supabase.com (الخطة المجانية بتكفي للبداية).
-2. من **SQL Editor** شغّل ملفات `supabase/migrations/` بالترتيب (`0001` وبعده `0002`)، وبعدها `supabase/seed.sql` إذا بدك البيانات النموذجية.
+2. من **SQL Editor** شغّل ملفات `supabase/migrations/` بالترتيب (`0001` و`0002` و`0003`)، وبعدها `supabase/seed.sql` إذا بدك البيانات النموذجية.
 3. من **Authentication → Providers** فعّل **Phone**، واربطه بمزوّد رسائل (Twilio أو MessageBird أو Vonage).
 4. انسخ `.env.example` لـ `.env.local` وعبّي القيم من **Project Settings → API**.
 5. `npm run build && npm start`.
@@ -42,13 +42,28 @@ npm run dev
 
 الأستاذ بيرفع الفيديو من المتصفح مباشرة لـ Bunny (السيرفر بيوقّع الرفع بس)، والطالب بيشوفه برابط بينتهي بعد 3 ساعات وعليه علامة مائية باسمه. بدون هالمفاتيح، رفع الفيديو بيكون مسكّر وباقي المنصة بتشتغل عادي.
 
-### ربط حساب أستاذ بصفحته
+### توثيق الأستاذ وربطه بصفحته
 
-الأستاذ بيسجّل دخول برقمه مرة وحدة، وبعدها من SQL Editor:
+الأستاذ بيعمل حساب من `/signup/teacher`، وبتظهرله صفحة التوثيق: بيرفع صورته وهويته وشهاداته. الوثائق بتنحفظ بـ bucket خاص (`teacher-docs`) وما بشوفها غير الأدمن.
+
+لمراجعة الوثائق من SQL Editor (والملفات نفسها من **Storage → teacher-docs**):
+
+```sql
+select p.full_name, p.phone, d.kind, d.file_name, d.storage_path, d.status
+from public.teacher_documents d join public.profiles p on p.id = d.user_id
+where d.status = 'pending' order by d.created_at;
+
+-- قبول أو رفض مع سبب
+update public.teacher_documents set status = 'approved' where id = '...';
+update public.teacher_documents set status = 'rejected', note = 'الصورة مش واضحة' where id = '...';
+```
+
+بعد ما تقبل الوثائق، اربط الأستاذ بصفحته وانقل صورته:
 
 ```sql
 update public.profiles set role = 'teacher', consent = 'not_needed' where phone = '962791234567';
-update public.teachers set user_id = (select id from public.profiles where phone = '962791234567'), verified = true
+update public.teachers set user_id = p.id, photo_url = p.photo_url, verified = true
+from (select id, photo_url from public.profiles where phone = '962791234567') p
 where slug = 'khaled-omari';
 ```
 
