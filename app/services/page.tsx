@@ -19,7 +19,7 @@ export default async function Services() {
     [t("Teacher pages"), t("Every teacher has a page with their subjects, prices, reviews and free trial lessons.")],
   ];
   const STEPS: [string, string][] = [
-    [t("Create your account"), t("Sign up with your mobile number. We send a one-time code by SMS.")],
+    [t("Create your account"), t("Sign up with your mobile number. We send a one-time code on WhatsApp.")],
     [t("Get an access code"), t("Agree on a plan with your teacher. They give you an access code.")],
     [t("Start learning"), t("Enter the code and all of that teacher's lessons open right away.")],
   ];
