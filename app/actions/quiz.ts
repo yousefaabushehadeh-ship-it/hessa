@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { DEMO_MODE } from "@/lib/env";
 import { TEACHERS } from "@/lib/demo-data";
 import { findLesson, getMySubscriptions } from "@/lib/data";
-import { demo2 } from "@/lib/demo-store";
+import { DEMO_MAX_TRIES, demo2 } from "@/lib/demo-store";
 import { requireRole } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { QuizResult } from "@/lib/types";
@@ -26,19 +26,27 @@ export async function submitQuiz(lessonId: string, _prev: QuizState, fd: FormDat
     const found = await findLesson(lessonId);
     const subs = await getMySubscriptions(s.userId);
     if (!found || !(found.lesson.isFree || subs.some((x) => x.teacherId === found.teacher.id))) return { error: t("You don't have access to this quiz.") };
+    const key = `${s.userId}:${lessonId}`;
+    const tries = (demo2.tries ??= {});
+    const used = tries[key] ?? 0;
+    if (used >= DEMO_MAX_TRIES) return { error: t("You've used all your tries for this quiz.") };
+    tries[key] = used + 1;
     const qs = demo2.quizzes[lessonId] ?? [];
-    const correct = qs.map((q) => q.answer);
-    const result = { score: correct.filter((c, i) => c === answers[i]).length, total: qs.length, correct, answers };
-    demo2.attempts[`${s.userId}:${lessonId}`] = result;
+    const answerKey = qs.map((q) => q.answer);
+    const score = answerKey.filter((c, i) => c === answers[i]).length;
+    const left = DEMO_MAX_TRIES - tries[key];
+    const result = { score, total: qs.length, correct: left === 0 || score === qs.length ? answerKey : [], answers, left };
+    demo2.attempts[key] = result;
     return { result };
   }
 
   const supabase = await supabaseServer();
   const { data, error } = await supabase.rpc("submit_quiz", { p_lesson: lessonId, p_answers: answers });
-  if (error) return { error: t("We couldn't submit the quiz. Please try again.") };
+  if (error)
+    return { error: error.message.includes("no_attempts_left") ? t("You've used all your tries for this quiz.") : t("We couldn't submit the quiz. Please try again.") };
   revalidatePath("/student", "layout");
-  const r = data as { score: number; total: number; correct: number[] };
-  return { result: { ...r, answers } };
+  const r = data as { score: number; total: number; correct: number[] | null; left: number };
+  return { result: { score: r.score, total: r.total, correct: r.correct ?? [], left: r.left, answers } };
 }
 
 // Teacher side ---------------------------------------------------------------

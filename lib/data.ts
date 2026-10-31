@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { DEMO_MODE } from "@/lib/env";
 import { DEMO_STUDENT, DEMO_TEACHER_ID, TEACHERS } from "@/lib/demo-data";
 import { supabaseServer } from "@/lib/supabase/server";
+import { teachesGrade } from "@/lib/catalog";
 import type { Lesson, Subscription, Teacher, TeacherFilters, Unit } from "@/lib/types";
 
 // Every page reads through these functions, so the same UI runs on sample data
@@ -14,11 +15,12 @@ type TeacherRow = {
   years: number; rating: number; review_count: number; student_count: number; price_month: number;
   price_term: number; color: string; badge: string | null; headline: string; education: string;
   live_schedule: string; bio: string; verified: boolean; photo_url: string | null;
+  school_id: string | null; cliq_alias: string;
   units?: { id: string; title: string; position: number; lessons: { id: string; title: string; type: Lesson["type"]; meta: string; is_free: boolean; position: number }[] }[];
 };
 
 const TEACHER_COLS =
-  "id, slug, name, initial, subject, grade, city, years, rating, review_count, student_count, price_month, price_term, color, badge, headline, education, live_schedule, bio, verified, photo_url";
+  "id, slug, name, initial, subject, grade, city, years, rating, review_count, student_count, price_month, price_term, color, badge, headline, education, live_schedule, bio, verified, photo_url, school_id, cliq_alias";
 
 function fromRow(r: TeacherRow): Teacher {
   const units: Unit[] = (r.units ?? [])
@@ -35,7 +37,8 @@ function fromRow(r: TeacherRow): Teacher {
     id: r.id, slug: r.slug, name: r.name, initial: r.initial, subject: r.subject, grade: r.grade, city: r.city,
     years: r.years, rating: Number(r.rating), reviewCount: r.review_count, studentCount: r.student_count,
     priceMonth: Number(r.price_month), priceTerm: Number(r.price_term), color: r.color, badge: r.badge,
-    headline: r.headline, education: r.education, liveSchedule: r.live_schedule, bio: r.bio, verified: r.verified, photoUrl: r.photo_url, units,
+    headline: r.headline, education: r.education, liveSchedule: r.live_schedule, bio: r.bio, verified: r.verified, photoUrl: r.photo_url,
+    schoolId: r.school_id, cliqAlias: r.cliq_alias, units,
   };
 }
 
@@ -44,7 +47,7 @@ export function applyFilters(list: Teacher[], f: TeacherFilters): Teacher[] {
   const out = list.filter(
     (t) =>
       (!f.subject || t.subject === f.subject) &&
-      (!f.grade || t.grade === f.grade) &&
+      (!f.grade || teachesGrade(t.grade, f.grade)) &&
       (!f.city || t.city === f.city) &&
       (!q || (t.name + t.subject + t.headline).includes(q)),
   );
@@ -54,7 +57,7 @@ export function applyFilters(list: Teacher[], f: TeacherFilters): Teacher[] {
 }
 
 export async function listTeachers(filters: TeacherFilters = {}): Promise<Teacher[]> {
-  if (DEMO_MODE) return applyFilters(TEACHERS, filters);
+  if (DEMO_MODE) return applyFilters(TEACHERS.filter((t) => t.verified), filters);
   const supabase = await supabaseServer();
   const { data, error } = await supabase.from("teachers").select(TEACHER_COLS).eq("verified", true);
   if (error) throw error;
@@ -85,15 +88,21 @@ export async function getTeacherById(id: string): Promise<Teacher | null> {
 
 export async function getMySubscriptions(userId: string): Promise<Subscription[]> {
   if (DEMO_MODE) {
+    let list: Subscription[] = DEMO_STUDENT.subscriptions;
     const raw = (await cookies()).get(DEMO_SUBS_COOKIE)?.value;
     if (raw) {
       try {
-        return JSON.parse(raw) as Subscription[];
+        list = JSON.parse(raw) as Subscription[];
       } catch {
-        /* fall through to the default demo list */
+        /* keep the default demo list */
       }
     }
-    return DEMO_STUDENT.subscriptions;
+    // Payments a teacher approved in the demo open that teacher too.
+    const { demoPlatform } = await import("@/lib/demo-platform");
+    const extra = demoPlatform.payments
+      .filter((p) => p.studentId === userId && p.status === "approved" && !list.some((x) => x.teacherId === p.teacherId))
+      .map((p) => ({ teacherId: p.teacherId, plan: p.plan, endsOn: new Date(Date.parse(p.createdAt) + (p.plan === "term" ? 90 : 30) * 864e5).toISOString().slice(0, 10), progress: 0 }));
+    return [...list, ...extra];
   }
   const supabase = await supabaseServer();
   const { data } = await supabase

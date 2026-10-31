@@ -41,7 +41,7 @@ export const fmtDate = fmtDateFor;
 
 export function typeLabel(lang: Lang, type: LessonType): string {
   const t = makeT(lang);
-  const labels: Record<LessonType, string> = { video: t("Video"), pdf: t("PDF"), quiz: t("Quiz"), live: t("Live class") };
+  const labels: Record<LessonType, string> = { video: t("Video"), pdf: t("PDF"), quiz: t("Quiz"), live: t("Live class"), worksheet: t("Worksheet") };
   return labels[type];
 }
 

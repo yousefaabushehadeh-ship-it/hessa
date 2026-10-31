@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { myConsentLink } from "@/app/actions/auth";
-import { DashShell, type NavItem } from "@/components/dash-shell";
+import { DashShell } from "@/components/dash-shell";
+import { navFor } from "@/lib/nav";
 import { SignOut } from "@/components/sign-out";
 import { DEMO_MODE } from "@/lib/env";
 import { getT } from "@/lib/i18n-server";
@@ -13,13 +14,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const s = await requireRole("student");
   if (!s.fullName) redirect("/login/student");
   const link = s.consent === "pending" ? await myConsentLink() : null;
-  const NAV: NavItem[] = [
-    { href: "/student", label: t("Home"), icon: "home" },
-    { href: "/student/materials", label: t("Study materials"), icon: "book" },
-    { href: "/student/redeem", label: t("Activate a code"), icon: "card" },
-    { href: "/teachers", label: t("Teachers"), icon: "users" },
-    { href: "/settings", label: t("Settings"), icon: "gear" },
-  ];
+  const NAV = navFor(s, t);
   return (
     <DashShell nav={NAV} footer={<SignOut />}>
       {s.consent === "pending" ? (

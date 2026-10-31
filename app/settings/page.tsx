@@ -1,5 +1,7 @@
 import { setLang } from "@/app/actions/lang";
-import { DashShell, TopBar, type NavItem } from "@/components/dash-shell";
+import { DashShell, TopBar } from "@/components/dash-shell";
+import { navFor } from "@/lib/nav";
+import { DeleteForm } from "./delete-form";
 import { SignOut } from "@/components/sign-out";
 import { getLang, getT } from "@/lib/i18n-server";
 import { requireSession } from "@/lib/session";
@@ -9,22 +11,8 @@ export default async function Settings() {
   const lang = await getLang();
   const s = await requireSession();
   const first = s.fullName.split(" ")[0] || "";
-  const NAV: NavItem[] =
-    s.role === "teacher"
-      ? [
-          { href: "/teacher", label: t("Overview"), icon: "home" },
-          { href: "/teacher/content", label: t("Content"), icon: "book" },
-          { href: "/teacher/students", label: t("Students"), icon: "users" },
-          { href: "/teacher/profile", label: t("My public page"), icon: "globe" },
-          { href: "/settings", label: t("Settings"), icon: "gear" },
-        ]
-      : [
-          { href: "/student", label: t("Home"), icon: "home" },
-          { href: "/student/materials", label: t("Study materials"), icon: "book" },
-          { href: "/student/redeem", label: t("Activate a code"), icon: "card" },
-          { href: "/teachers", label: t("Teachers"), icon: "users" },
-          { href: "/settings", label: t("Settings"), icon: "gear" },
-        ];
+  const NAV = navFor(s, t);
+  const roles = { student: t("Student"), teacher: t("Teacher"), school: t("School"), admin: t("Hessa team") };
   return (
     <DashShell nav={NAV} footer={<SignOut />}>
       <TopBar title={t("Settings")} sub={t("Language and account.")} who={first} initial={first[0] ?? "S"} color="var(--orange)" />
@@ -62,11 +50,19 @@ export default async function Settings() {
           </div>
           <div className="radio-row" style={{ cursor: "default" }}>
             <span>
-              <span className="muted">{t("Role")}</span> <b>{s.role === "teacher" ? t("Teacher") : t("Student")}</b>
+              <span className="muted">{t("Role")}</span> <b>{roles[s.role]}</b>
             </span>
           </div>
         </div>
       </div>
+      {s.role !== "admin" && (
+        <div className="card panel" style={{ maxWidth: 620 }}>
+          <div className="ph2">
+            <h2>{t("Delete account")}</h2>
+          </div>
+          <DeleteForm />
+        </div>
+      )}
     </DashShell>
   );
 }

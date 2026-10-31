@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { completeProfile, sendOtp, verifyOtp, type LoginState } from "@/app/actions/auth";
+import { completeProfile, sendOtp, verifyOtp, type LoginState, type Portal } from "@/app/actions/auth";
 import { useT } from "@/components/lang";
 
 const STEPS: LoginState["step"][] = ["phone", "otp", "profile"];
@@ -14,37 +14,65 @@ async function dispatch(prev: LoginState, fd: FormData): Promise<LoginState> {
   return completeProfile(prev, fd);
 }
 
+type Option = [string, string];
+
 type Props = {
-  as: "student" | "teacher";
+  as: Portal;
   next?: string;
   demo: boolean;
   startAtProfile?: boolean;
   signup?: boolean;
-  /** Subjects a teacher can pick when signing up: [stored value, label]. */
-  subjects?: [string, string][];
+  /** Choices for the profile step: [stored value, label]. */
+  subjects?: Option[];
+  grades?: Option[];
+  teacherGrades?: Option[];
+  cities?: Option[];
 };
 
-export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [] }: Props) {
+function Select({ id, name, label, options }: { id: string; name: string; label: string; options: Option[] }) {
+  return (
+    <div>
+      <label className="h" htmlFor={id}>
+        {label}
+      </label>
+      <select className="field" id={id} name={name} required>
+        {options.map(([value, text]) => (
+          <option key={value} value={value}>
+            {text}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [], grades = [], teacherGrades = [], cities = [] }: Props) {
   const t = useT();
   const [state, action, pending] = useActionState(dispatch, { step: startAtProfile ? "profile" : "phone", as, next, signup } as LoginState);
   const idx = STEPS.indexOf(state.step);
   const teacher = state.as === "teacher";
+  const portal = state.as ?? "student";
+  const names: Record<Portal, [string, string, string, string]> = {
+    student: [t("Student portal"), t("Create a student account"), t("Student sign in"), "p-ok"],
+    teacher: [t("Teacher portal"), t("Create a teacher account"), t("Teacher sign in"), "p-warn"],
+    school: [t("School portal"), t("Create a school account"), t("School sign in"), "p-info"],
+    admin: [t("Hessa team"), t("Team sign in"), t("Team sign in"), "p-bad"],
+  };
+  const [badge, upTitle, inTitle, pill] = names[portal];
   return (
     <div className="card center-card">
       <div className="dots">
-        {(teacher && !signup && !startAtProfile ? STEPS.slice(0, 2) : STEPS).map((s, i) => (
+        {(portal !== "student" && !signup && !startAtProfile ? STEPS.slice(0, 2) : STEPS).map((s, i) => (
           <i key={s} className={i <= idx ? "on" : ""} />
         ))}
       </div>
 
       {state.step === "phone" && (
         <form className="frm" action={action}>
-          <span className={`pill ${teacher ? "p-warn" : "p-ok"}`} style={{ justifySelf: "start" }}>
-            {teacher ? t("Teacher portal") : t("Student portal")}
+          <span className={`pill ${pill}`} style={{ justifySelf: "start" }}>
+            {badge}
           </span>
-          <h1 style={{ fontSize: 24 }}>
-            {signup ? (teacher ? t("Create a teacher account") : t("Create a student account")) : teacher ? t("Teacher sign in") : t("Student sign in")}
-          </h1>
+          <h1 style={{ fontSize: 24 }}>{signup ? upTitle : inTitle}</h1>
           <p className="muted">{t("No email and no password. We send a code to your phone.")}</p>
           <input type="hidden" name="as" value={state.as} />
           <input type="hidden" name="next" value={state.next ?? ""} />
@@ -74,12 +102,16 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
           <button className="btn btn-pri" type="submit" disabled={pending}>
             {pending ? t("One moment...") : t("Send me a code")}
           </button>
-          <Link className="link" style={{ justifySelf: "center" }} href={signup ? `/login/${state.as}` : `/signup/${state.as}`}>
-            {signup ? t("Already have an account? Sign in") : t("New here? Create an account")}
-          </Link>
-          <Link className="link" style={{ justifySelf: "center", fontSize: 13.5 }} href={`/${signup ? "signup" : "login"}/${teacher ? "student" : "teacher"}`}>
-            {teacher ? t("Are you a student? Go to the student portal") : t("Are you a teacher? Go to the teacher portal")}
-          </Link>
+          {portal !== "admin" && (
+            <>
+              <Link className="link" style={{ justifySelf: "center" }} href={signup ? `/login/${portal}` : `/signup/${portal}`}>
+                {signup ? t("Already have an account? Sign in") : t("New here? Create an account")}
+              </Link>
+              <Link className="link" style={{ justifySelf: "center", fontSize: 13.5 }} href={`/${signup ? "signup" : "login"}/${portal === "student" ? "teacher" : "student"}`}>
+                {portal === "student" ? t("Are you a teacher? Go to the teacher portal") : t("Are you a student? Go to the student portal")}
+              </Link>
+            </>
+          )}
         </form>
       )}
 
@@ -127,20 +159,11 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
             </label>
             <input className="field" id="tnm" name="name" required autoComplete="name" />
           </div>
-          <div>
-            <label className="h" htmlFor="sub">
-              {t("Subject you teach")}
-            </label>
-            <select className="field" id="sub" name="subject" required>
-              {subjects.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select id="sub" name="subject" label={t("Subject you teach")} options={subjects} />
+          <Select id="tgr" name="grade" label={t("Grade you teach")} options={teacherGrades} />
+          <Select id="tct" name="city" label={t("City")} options={cities} />
           <p className="muted" style={{ fontSize: 13 }}>
-            {t("We check every teacher's identity and qualifications before their page goes public. We will contact you on this number.")}
+            {t("We check every teacher's identity and qualifications before their page goes public. If your school added you, your page opens right away.")}
           </p>
           {state.error && <p className="form-error">{state.error}</p>}
           <button className="btn btn-pri" type="submit" disabled={pending}>
@@ -149,7 +172,33 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
         </form>
       )}
 
-      {state.step === "profile" && !teacher && (
+      {state.step === "profile" && portal === "school" && (
+        <form className="frm" action={action}>
+          <h1 style={{ fontSize: 24 }}>{t("About your school")}</h1>
+          <div>
+            <label className="h" htmlFor="snm">
+              {t("Your full name")}
+            </label>
+            <input className="field" id="snm" name="name" required autoComplete="name" />
+          </div>
+          <div>
+            <label className="h" htmlFor="sch">
+              {t("School or center name")}
+            </label>
+            <input className="field" id="sch" name="school" required />
+          </div>
+          <Select id="sct" name="city" label={t("City")} options={cities} />
+          <p className="muted" style={{ fontSize: 13 }}>
+            {t("We call the school to verify it. Once verified, the teachers you add go public right away.")}
+          </p>
+          {state.error && <p className="form-error">{state.error}</p>}
+          <button className="btn btn-pri" type="submit" disabled={pending}>
+            {pending ? t("One moment...") : t("Continue")}
+          </button>
+        </form>
+      )}
+
+      {state.step === "profile" && portal === "student" && (
         <form className="frm" action={action}>
           <h1 style={{ fontSize: 24 }}>{t("A bit about you")}</h1>
           <div>
@@ -158,19 +207,7 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
             </label>
             <input className="field" id="nm" name="name" required autoComplete="name" />
           </div>
-          <div>
-            <label className="h" htmlFor="gr">
-              {t("Grade")}
-            </label>
-            <select className="field" id="gr" name="grade">
-              <option value="توجيهي علمي">{t("Tawjihi (Science)")}</option>
-              <option value="توجيهي أدبي">{t("Tawjihi (Literary)")}</option>
-              <option value="توجيهي صناعي">{t("Tawjihi (Industrial)")}</option>
-              <option value="الصف الحادي عشر">{t("Grade 11")}</option>
-              <option value="الصف العاشر">{t("Grade 10")}</option>
-              <option value="الصف التاسع">{t("Grade 9")}</option>
-            </select>
-          </div>
+          <Select id="gr" name="grade" label={t("Your grade")} options={grades} />
           <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
             <legend className="h">{t("Your age")}</legend>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>

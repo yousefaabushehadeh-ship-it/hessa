@@ -20,4 +20,4 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-export const config = { matcher: ["/student/:path*", "/teacher/:path*", "/login", "/admin/:path*"] };
+export const config = { matcher: ["/student/:path*", "/teacher/:path*", "/school/:path*", "/admin/:path*", "/login", "/api/:path*"] };

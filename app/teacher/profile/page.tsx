@@ -26,7 +26,7 @@ export default async function TeacherProfile() {
       </div>
       <div className="card panel" style={{ maxWidth: 720 }}>
         <ProfileForm
-          t={{ headline: x.headline, bio: x.bio, education: x.education, liveSchedule: x.liveSchedule, priceMonth: x.priceMonth, priceTerm: x.priceTerm }}
+          t={{ headline: x.headline, bio: x.bio, education: x.education, liveSchedule: x.liveSchedule, priceMonth: x.priceMonth, priceTerm: x.priceTerm, cliqAlias: x.cliqAlias }}
         />
         <p className="muted" style={{ fontSize: 13, marginTop: 14 }}>
           {t("Your name, subject and verification are changed by the Hessa team.")}{" "}

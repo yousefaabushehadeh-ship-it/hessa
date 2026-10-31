@@ -3,6 +3,7 @@ import { TopBar } from "@/components/dash-shell";
 import { Icon, fmt, fmtDate } from "@/components/ui";
 import { getTeacherStats, listMyCodes } from "@/lib/data";
 import { getLang, getT } from "@/lib/i18n-server";
+import { listTeacherPayments, listTeacherSubmissions } from "@/lib/platform";
 import { myTeacher } from "@/lib/teacher-context";
 import { CodesForm } from "./codes-form";
 
@@ -12,16 +13,32 @@ export default async function TeacherHome() {
   const x = await myTeacher();
   const codes = await listMyCodes(x.id);
   const st = await getTeacherStats(x, codes);
+  const [payments, handIns] = await Promise.all([listTeacherPayments(x.id), listTeacherSubmissions(x)]);
+  const todo: [number, string, string][] = [
+    [payments.filter((p) => p.status === "pending").length, t("payments to confirm"), "/teacher/payments"],
+    [handIns.filter((h) => h.status === "submitted").length, t("worksheets to mark"), "/teacher/worksheets"],
+  ];
   const first = x.name.split(" ")[0];
   return (
     <>
       <TopBar
         title={t("Welcome, Teacher {name}", { name: first })}
-        sub={t("Create access codes for your students, and organize your content from the Content page.")}
+        sub={t("Confirm payments, mark worksheets and organize your content.")}
         who={`${t("Teacher")} ${first}`}
         initial={x.initial}
         color={x.color} photoUrl={x.photoUrl}
       />
+      {todo.some(([n]) => n > 0) && (
+        <div className="admin-tabs">
+          {todo
+            .filter(([n]) => n > 0)
+            .map(([n, label, href]) => (
+              <Link key={href} className="chip" href={href} style={{ borderColor: "var(--warn-fg)" }}>
+                <b className="num">{n}</b> {label}
+              </Link>
+            ))}
+        </div>
+      )}
       <div className="kpis">
         <div className="card stat">
           <div className="lbl">{t("Active students")}</div>

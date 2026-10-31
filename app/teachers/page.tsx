@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { SiteFooter, SiteNav } from "@/components/site";
 import { Icon, TeacherCard } from "@/components/ui";
-import { SUBJECTS, TEACHERS } from "@/lib/demo-data";
+import { CITIES, GRADES as CATALOG_GRADES, SUBJECT_LIST } from "@/lib/catalog";
 import { listTeachers } from "@/lib/data";
 import { dataLabel } from "@/lib/i18n";
 import { getLang, getT } from "@/lib/i18n-server";
@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getT())("Find your teacher") };
 }
 
-const GRADES = ["", "توجيهي علمي", "جميع الفروع", "الصفوف 9 لـ 11"];
+const GRADES = ["", ...CATALOG_GRADES];
 
 type Search = Promise<Record<string, string | undefined>>;
 
@@ -32,7 +32,6 @@ export default async function Browse({ searchParams }: { searchParams: Search })
     sort: (["rating", "students", "price"].includes(sp.sort ?? "") ? sp.sort : "rating") as TeacherFilters["sort"],
   };
   const list = await listTeachers(f);
-  const cities = [...new Set(TEACHERS.map((x) => x.city))];
   return (
     <>
       <SiteNav active="browse" />
@@ -45,7 +44,7 @@ export default async function Browse({ searchParams }: { searchParams: Search })
               </label>
               <select className="field" id="f-subject" name="subject" defaultValue={f.subject ?? ""}>
                 <option value="">{t("All subjects")}</option>
-                {SUBJECTS.map(([s]) => (
+                {SUBJECT_LIST.map((s) => (
                   <option key={s} value={s}>
                     {dataLabel(lang, s)}
                   </option>
@@ -70,7 +69,7 @@ export default async function Browse({ searchParams }: { searchParams: Search })
               </label>
               <select className="field" id="f-city" name="city" defaultValue={f.city ?? ""}>
                 <option value="">{t("All cities")}</option>
-                {cities.map((c) => (
+                {CITIES.map((c) => (
                   <option key={c} value={c}>
                     {dataLabel(lang, c)}
                   </option>

@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { updateProfile } from "@/app/actions/teacher";
 import { useT } from "@/components/lang";
 
-type Fields = { headline: string; bio: string; education: string; liveSchedule: string; priceMonth: number; priceTerm: number };
+type Fields = { headline: string; bio: string; education: string; liveSchedule: string; priceMonth: number; priceTerm: number; cliqAlias?: string };
 
 export function ProfileForm({ t: fields }: { t: Fields }) {
   const t = useT();
@@ -48,6 +48,15 @@ export function ProfileForm({ t: fields }: { t: Fields }) {
           </label>
           <input className="field num" id="p-pt" name="priceTerm" type="number" min={1} max={1500} defaultValue={fields.priceTerm} required />
         </div>
+      </div>
+      <div>
+        <label className="h" htmlFor="p-cliq">
+          {t("Your CliQ alias or number")}
+        </label>
+        <input className="field num" dir="ltr" id="p-cliq" name="cliq" defaultValue={fields.cliqAlias ?? ""} maxLength={40} placeholder="KHALED.OMARI" />
+        <p className="muted" style={{ fontSize: 12.5, marginTop: 6 }}>
+          {t("Students send their subscription here, then you confirm the transfer from the Payments page.")}
+        </p>
       </div>
       {state.error && <p className="form-error">{state.error}</p>}
       {state.ok && <p className="form-ok">{state.ok}</p>}

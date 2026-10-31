@@ -5,10 +5,15 @@ import type { QuizQuestionFull, QuizResult, Review } from "@/lib/types";
 type Store = {
   quizzes: Record<string, QuizQuestionFull[]>;
   attempts: Record<string, QuizResult>;
+  /** How many times each student took each quiz: "userId:lessonId" → count. */
+  tries?: Record<string, number>;
   reviews: Record<string, (Review & { mine?: boolean })[]>;
 };
 
 const g = globalThis as unknown as { __hessaPhase2?: Store };
+
+/** Tries per quiz in the demo (the real limit is lessons.max_attempts). */
+export const DEMO_MAX_TRIES = 3;
 
 export const demo2: Store = (g.__hessaPhase2 ??= {
   quizzes: {

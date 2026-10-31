@@ -31,3 +31,26 @@ Object.assign(EN_DATA, {
   "قبل أسبوع": "1 week ago",
   اليوم: "Today",
 });
+
+// Catalog values from lib/catalog.ts.
+Object.assign(EN_DATA, {
+  "الصف الثامن": "Grade 8",
+  "الصف السابع": "Grade 7",
+  "الصف السادس": "Grade 6",
+  "الصف الخامس": "Grade 5",
+  "الصف الرابع": "Grade 4",
+  "الصف الثالث": "Grade 3",
+  "الصف الثاني": "Grade 2",
+  "الصف الأول": "Grade 1",
+  "الصفوف 5 لـ 8": "Grades 5 to 8",
+  "الصفوف 1 لـ 4": "Grades 1 to 4",
+  علوم: "Science",
+  "التربية الإسلامية": "Islamic Education",
+  حاسوب: "Computer Science",
+  السلط: "Salt",
+  مادبا: "Madaba",
+  الطفيلة: "Tafilah",
+  معان: "Ma'an",
+  جرش: "Jerash",
+  عجلون: "Ajloun",
+});

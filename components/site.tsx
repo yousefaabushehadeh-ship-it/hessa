@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LangSwitch } from "@/components/lang-switch";
-import { getSession } from "@/lib/session";
+import { getSession, homeFor } from "@/lib/session";
 import { getT } from "@/lib/i18n-server";
 
 export async function SiteNav({ active }: { active?: "browse" }) {
@@ -23,7 +23,7 @@ export async function SiteNav({ active }: { active?: "browse" }) {
           <span className="sp" />
           <LangSwitch />
           {s ? (
-            <Link href={s.role === "student" ? "/student" : "/teacher"} className="btn btn-pri btn-sm">
+            <Link href={homeFor(s.role)} className="btn btn-pri btn-sm">
               {t("My account")}
             </Link>
           ) : (

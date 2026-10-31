@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n-server";
-import { getSession } from "@/lib/session";
+import { getSession, homeFor } from "@/lib/session";
 import { PortalChooser } from "./portal";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -15,6 +15,6 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   if (sp.as === "teacher") redirect("/login/teacher");
   if (sp.as === "student" || sp.next) redirect(`/login/student${q}`);
   const s = await getSession();
-  if (s) redirect(s.role === "student" ? (s.fullName ? "/student" : "/login/student") : "/teacher");
+  if (s) redirect(s.role === "student" && !s.fullName ? "/login/student" : homeFor(s.role));
   return <PortalChooser />;
 }
