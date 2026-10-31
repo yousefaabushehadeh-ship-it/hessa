@@ -118,3 +118,11 @@ export type School = { id: string; name: string; city: string; verified: boolean
 
 /** A teacher a school added by phone number, before or after they signed in. */
 export type SchoolInvite = { id: string; phone: string; name: string; subject: string; grade: string; used: boolean; createdAt: string };
+
+export type ResourceKind = "book" | "video" | "summary" | "link";
+
+/**
+ * One item in a teacher's study kit. `url` is set only for videos and links the viewer may open;
+ * books and summaries are PDFs served through /api/resource/[id].
+ */
+export type Resource = { id: string; kind: ResourceKind; title: string; note: string; url: string | null; hasFile: boolean; isFree: boolean; position: number };
