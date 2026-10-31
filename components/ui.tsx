@@ -73,10 +73,6 @@ export function TeacherCard({ t: teacher, lang }: { t: Teacher; lang: Lang }) {
       <div className="meta" style={{ gap: 14 }}>
         <Stars value={teacher.rating} />
         <span>({t("{n} reviews", { n: teacher.reviewCount })})</span>
-        <span style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
-          <Icon name="pin" sm />
-          {dataLabel(lang, teacher.city)}
-        </span>
       </div>
       <div className="foot">
         <span className="price num">

@@ -36,7 +36,7 @@ export default async function AdminTeachers() {
                 <div style={{ flex: "1 1 240px", minWidth: 0 }}>
                   <b>{a.name}</b>
                   <div className="muted" style={{ fontSize: 13 }}>
-                    {dataLabel(lang, a.subject)} · {dataLabel(lang, a.grade)} · {dataLabel(lang, a.city)}
+                    {dataLabel(lang, a.subject)} · {dataLabel(lang, a.grade)}
                   </div>
                   <div className="muted num" dir="ltr" style={{ fontSize: 13, textAlign: "start" }}>
                     {a.phone} · {a.createdAt}
@@ -110,9 +110,6 @@ export default async function AdminTeachers() {
                     <Link className="link" href={`/${x.slug}`}>
                       {x.name}
                     </Link>
-                    <div className="muted" style={{ fontSize: 12.5 }}>
-                      {dataLabel(lang, x.city)}
-                    </div>
                   </td>
                   <td className="muted hide-s">
                     {dataLabel(lang, x.subject)} · {dataLabel(lang, x.grade)}
