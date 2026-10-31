@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { completeProfile, sendOtp, verifyOtp, type LoginState, type Portal } from "@/app/actions/auth";
+import { completeProfile, resendOtp, sendOtp, verifyOtp, type LoginState, type Portal } from "@/app/actions/auth";
 import { useT } from "@/components/lang";
 
 const STEPS: LoginState["step"][] = ["phone", "otp", "profile"];
@@ -10,7 +10,11 @@ const STEPS: LoginState["step"][] = ["phone", "otp", "profile"];
 // One action per step; each returns the state for the next step.
 async function dispatch(prev: LoginState, fd: FormData): Promise<LoginState> {
   if (prev.step === "phone") return sendOtp(prev, fd);
-  if (prev.step === "otp") return fd.get("back") ? { step: "phone", as: prev.as, next: prev.next, phone: prev.phone, signup: prev.signup } : verifyOtp(prev, fd);
+  if (prev.step === "otp") {
+    if (fd.get("back")) return { step: "phone", as: prev.as, next: prev.next, phone: prev.phone, signup: prev.signup };
+    if (fd.get("resend")) return resendOtp(prev);
+    return verifyOtp(prev, fd);
+  }
   return completeProfile(prev, fd);
 }
 
@@ -73,7 +77,7 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
             {badge}
           </span>
           <h1 style={{ fontSize: 24 }}>{signup ? upTitle : inTitle}</h1>
-          <p className="muted">{t("No email and no password. We send a code to your phone.")}</p>
+          <p className="muted">{t("No email and no password. We send a code to your WhatsApp.")}</p>
           <input type="hidden" name="as" value={state.as} />
           <input type="hidden" name="next" value={state.next ?? ""} />
           {signup && <input type="hidden" name="signup" value="1" />}
@@ -119,7 +123,7 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
         <form className="frm" action={action}>
           <h1 style={{ fontSize: 24 }}>{t("Enter your code")}</h1>
           <p className="muted">
-            {t("We sent a 6-digit code by SMS to")} <span dir="ltr">+962 {state.phone}</span>.
+            {state.channel === "sms" ? t("We sent a 6-digit code by SMS to") : t("We sent a 6-digit code on WhatsApp to")} <span dir="ltr">+962 {state.phone}</span>.
           </p>
           <input
             className="field num"
@@ -140,9 +144,13 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
               </span>
             </div>
           )}
+          {state.notice && !state.error && <p className="muted">{state.notice}</p>}
           {state.error && <p className="form-error">{state.error}</p>}
           <button className="btn btn-pri" type="submit" disabled={pending}>
             {pending ? t("One moment...") : t("Confirm")}
+          </button>
+          <button className="link" style={{ justifySelf: "center" }} type="submit" name="resend" value="1" formNoValidate disabled={pending}>
+            {t("Didn't get it? Send the code again")}
           </button>
           <button className="link" style={{ justifySelf: "center" }} type="submit" name="back" value="1" formNoValidate>
             {t("Change number")}

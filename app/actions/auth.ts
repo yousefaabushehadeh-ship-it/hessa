@@ -3,7 +3,7 @@
 import { getT } from "@/lib/i18n-server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { DEMO_MODE, DEMO_OTP, SITE_URL } from "@/lib/env";
+import { DEMO_MODE, DEMO_OTP, OTP_CHANNEL, SITE_URL } from "@/lib/env";
 import { DEMO_SCHOOL_ID, DEMO_STUDENT, DEMO_TEACHER_ID, TEACHERS } from "@/lib/demo-data";
 import { DEMO_SUBS_COOKIE } from "@/lib/data";
 import { demoPlatform } from "@/lib/demo-platform";
@@ -23,6 +23,10 @@ export type LoginState = {
   next?: string;
   /** Came from the sign-up page, so the demo asks for a name. */
   signup?: boolean;
+  /** How the code was sent, so the code step can say "WhatsApp" or "SMS". */
+  channel?: "whatsapp" | "sms";
+  /** A short note on the code step, e.g. after sending the code again. */
+  notice?: string;
   error?: string;
 };
 
@@ -44,21 +48,39 @@ export async function sendOtp(_prev: LoginState, fd: FormData): Promise<LoginSta
   const signup = fd.get("signup") === "1" || undefined;
   if (!PHONE_RE.test(phone)) return { step: "phone", as, next, signup, error: t("Enter a valid Jordanian number starting with 77, 78 or 79.") };
   if (!fd.get("agree")) return { step: "phone", phone, as, next, signup, error: t("You must agree to the terms and privacy policy.") };
-  if (!DEMO_MODE) {
-    const supabase = await supabaseServer();
-    const { error } = await supabase.auth.signInWithOtp({ phone: `+962${phone}` });
-    if (error) return { step: "phone", phone, as, next, signup, error: t("We couldn't send the code. Please try again shortly.") };
-  }
-  return { step: "otp", phone, as, next, signup };
+  const error = await deliverOtp(phone);
+  if (error) return { step: "phone", phone, as, next, signup, error: t(error) };
+  return { step: "otp", phone, as, next, signup, channel: OTP_CHANNEL };
+}
+
+/** Sends the login code (WhatsApp by default). Returns an English error to translate, or nothing. */
+async function deliverOtp(phone: string): Promise<string | undefined> {
+  if (DEMO_MODE) return;
+  const supabase = await supabaseServer();
+  const { error } = await supabase.auth.signInWithOtp({ phone: `+962${phone}`, options: { channel: OTP_CHANNEL } });
+  if (!error) return;
+  console.error("sendOtp failed", error.status, error.code, error.message);
+  // Supabase lets a number ask for a new code once a minute.
+  if (error.status === 429 || /rate limit|seconds/i.test(error.message)) return "Please wait a minute before asking for a new code.";
+  return "We couldn't send the code. Please try again shortly.";
+}
+
+/** "Send the code again" on the code step. */
+export async function resendOtp(prev: LoginState): Promise<LoginState> {
+  const t = await getT();
+  if (!prev.phone || !PHONE_RE.test(prev.phone)) return { step: "phone", as: prev.as, next: prev.next, signup: prev.signup };
+  const error = await deliverOtp(prev.phone);
+  if (error) return { ...prev, notice: undefined, error: t(error) };
+  return { ...prev, channel: OTP_CHANNEL, error: undefined, notice: t("We sent you a new code.") };
 }
 
 export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginState> {
   const t = await getT();
   const token = String(fd.get("code") ?? "").replace(/\D/g, "");
-  if (token.length !== 6) return { ...prev, error: t("The code has 6 digits.") };
+  if (token.length !== 6) return { ...prev, notice: undefined, error: t("The code has 6 digits.") };
 
   if (DEMO_MODE) {
-    if (token !== DEMO_OTP) return { ...prev, error: t("Wrong code. Check it and try again.") };
+    if (token !== DEMO_OTP) return { ...prev, notice: undefined, error: t("Wrong code. Check it and try again.") };
     // Signing in to the demo opens that portal's demo account; only sign-up asks for a name.
     if (!prev.signup) {
       if (prev.as === "admin") {
@@ -82,8 +104,9 @@ export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginSt
   }
 
   const supabase = await supabaseServer();
+  // WhatsApp codes are checked the same way as SMS codes.
   const { data, error } = await supabase.auth.verifyOtp({ phone: `+962${prev.phone}`, token, type: "sms" });
-  if (error || !data.user) return { ...prev, error: t("The code is wrong or has expired.") };
+  if (error || !data.user) return { ...prev, notice: undefined, error: t("The code is wrong or has expired.") };
   const { data: profile } = await supabase.from("profiles").select("role, full_name, consent").eq("id", data.user.id).single();
   const role = (profile?.role ?? "student") as Session["role"];
   const isNew = role === "student" && !profile?.full_name;

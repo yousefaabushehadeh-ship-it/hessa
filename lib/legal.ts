@@ -24,7 +24,7 @@ export const PRIVACY: LegalSection[] = [
   {
     h: "Why we use it",
     p: [
-      "To create your account and sign you in with a code sent by SMS.",
+      "To create your account and sign you in with a code sent on WhatsApp or by SMS.",
       "To open the study materials of the teachers you subscribe to, track your progress, and grade your quizzes.",
       "To verify every teacher's identity and qualifications before their page goes public.",
       "To protect teachers' content: every file and video carries a watermark with the student's name.",
@@ -37,7 +37,7 @@ export const PRIVACY: LegalSection[] = [
     p: [
       "Your teacher sees your name, grade, progress and quiz scores in their own subjects only. They do not see your subscriptions with other teachers.",
       "Your public review shows your name. Teachers' public pages show their name, photo, subject, qualifications and prices.",
-      "Service providers that run the platform for us, only for that purpose: Supabase (database and file storage), an SMS provider for login codes, Bunny (video streaming), and our hosting provider. Some of them store data outside Jordan, and we choose providers with strong security safeguards.",
+      "Service providers that run the platform for us, only for that purpose: Supabase (database and file storage), Twilio and WhatsApp (Meta) to send login codes, Bunny (video streaming), and our hosting provider. Some of them store data outside Jordan, and we choose providers with strong security safeguards.",
       "Authorities, only when Jordanian law requires it.",
       "We do not sell your data, and we do not share it with advertisers.",
     ],
