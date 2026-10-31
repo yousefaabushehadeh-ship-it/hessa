@@ -8,6 +8,7 @@
 - Video: `lib/bunny.ts` signs uploads (TUS from the browser) and embed URLs. Never send `BUNNY_*` keys to the client.
 - To test SQL locally, Postgres 16 is installed: load a small stub for Supabase's `auth`/`storage` schemas, then the migrations.
 - Roles: student, teacher, school, admin (`lib/nav.ts` has each menu; `requireRole` sends people to their own dashboard). Admin pages read with the service key after `requireRole("admin")` (`lib/platform.ts`).
+- Study kit (books, explainer videos, summaries, links per teacher) is `resources` (migration 0006). Students read it only through `teacher_resources` / `open_resource` (`lib/resources.ts`); kit PDFs are served stamped by `app/api/resource/[id]`.
 - Big files (lesson PDFs, hand-ins, documents) go from the browser to Storage through a signed upload URL, never through a server action (hosting caps a request at a few MB). Lesson PDFs are served by `app/api/material/[id]`, which checks access and stamps the student on every page.
 - Mutations are server actions in `app/actions/*`, returning `{ ok?, error? }` for `useActionState`.
 - Security lives in the database: RLS policies and `protect_fields` in `supabase/migrations/0001_init.sql`. New tables need RLS on. New migrations go in a new numbered file.

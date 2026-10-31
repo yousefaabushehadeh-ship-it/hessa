@@ -27,6 +27,7 @@ export function navFor(s: Session, t: T): NavItem[] {
       ? [
           { href: "/teacher", label: t("Overview"), icon: "home" },
           { href: "/teacher/content", label: t("Content"), icon: "book" },
+          { href: "/teacher/kit", label: t("Study kit"), icon: "grid" },
           { href: "/teacher/worksheets", label: t("Worksheets"), icon: "worksheet" },
           { href: "/teacher/payments", label: t("Payments"), icon: "wallet" },
           { href: "/teacher/students", label: t("Students"), icon: "users" },

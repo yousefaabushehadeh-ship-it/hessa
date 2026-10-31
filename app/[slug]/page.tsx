@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { KitList } from "@/components/kit";
 import { ReviewForm } from "@/components/review-form";
 import { SiteFooter, SiteNav } from "@/components/site";
 import { Avatar, Icon, LessonIcon, Stars, Verified, fmt, fmtDate, typeLabel } from "@/components/ui";
 import { getMySubscriptions, getTeacherBySlug } from "@/lib/data";
 import { dataLabel } from "@/lib/i18n";
 import { getLang, getT } from "@/lib/i18n-server";
+import { listResources } from "@/lib/resources";
 import { getMyReview, getReviews } from "@/lib/reviews";
 import { getSession } from "@/lib/session";
 
@@ -33,6 +35,8 @@ export default async function TeacherPage({ params }: { params: Params }) {
   const sub = subs.find((s) => s.teacherId === teacher.id);
   const reviews = await getReviews(teacher.id, lang);
   const mine = sub && session ? await getMyReview(session.userId, teacher.id) : null;
+  const kit = await listResources(teacher.id, session);
+  const ownPage = session?.role === "teacher" && session.teacherId === teacher.id;
   const count = teacher.units.reduce((a, u) => a + u.lessons.length, 0);
   const first = teacher.name.split(" ")[0];
 
@@ -165,6 +169,20 @@ export default async function TeacherPage({ params }: { params: Params }) {
               ))}
             </div>
 
+            {kit.length > 0 && (
+              <div className="card box">
+                <div className="ph2" style={{ marginBottom: 14 }}>
+                  <h2 style={{ margin: 0 }}>{t("Study kit")}</h2>
+                  <span className="muted" style={{ fontSize: 13 }}>
+                    {t("Books, explainer videos, summaries and links")}
+                  </span>
+                </div>
+                <div className="unit">
+                  <KitList items={kit} lang={lang} open={Boolean(sub) || ownPage} signedIn={Boolean(session)} />
+                </div>
+              </div>
+            )}
+
             <div className="card box">
               <div className="ph2">
                 <h2 style={{ margin: 0 }}>{t("Reviews")}</h2>
@@ -238,6 +256,10 @@ export default async function TeacherPage({ params }: { params: Params }) {
                 <li>
                   <Icon name="check" sm />
                   <span>{t("All videos, notes and worksheets")}</span>
+                </li>
+                <li>
+                  <Icon name="check" sm />
+                  <span>{t("The full study kit: books, summaries and explainer videos")}</span>
                 </li>
                 <li>
                   <Icon name="check" sm />
