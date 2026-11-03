@@ -70,4 +70,6 @@ export const AR_LEGAL: Record<string, string> = {
   "We may update these terms. If a change is important, we will tell you before it takes effect, and continuing to use Hessa means you accept it.": "قد نحدّث هذه الشروط. وإذا كان التعديل مهماً، سنبلغك قبل أن يسري، واستمرارك في استخدام حصّة يعني موافقتك عليه.",
   "These terms are governed by the laws of the Hashemite Kingdom of Jordan, and the courts of Amman have jurisdiction over any dispute.": "تخضع هذه الشروط لقوانين المملكة الأردنية الهاشمية، وتختص محاكم عمّان بالنظر في أي نزاع.",
   "Questions? Write to support@hessa.jo.": "عندك سؤال؟ راسلنا على support@hessa.jo.",
+  "Your parent, if you are under 18 and they approved your account, sees your report through their approval link: your progress, quiz scores, worksheet marks and teachers' comments with each of your teachers.": "يرى ولي أمرك، إذا كنت دون 18 سنة ووافق على حسابك، تقريرك عبر رابط الموافقة: تقدّمك ونتائج اختباراتك وعلامات أوراق العمل وملاحظات كل معلم من معلميك.",
+  "If your teacher joined through a school, the school sees totals per teacher only, such as the number of students and the average progress. It does not see your name or your marks.": "إذا انضم معلمك عن طريق مدرسة، ترى المدرسة أرقامًا إجمالية لكل معلم فقط، مثل عدد الطلاب ومتوسط التقدّم، ولا ترى اسمك أو علاماتك.",
 };

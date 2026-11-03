@@ -19,6 +19,7 @@ export function navFor(s: Session, t: T): NavItem[] {
     return [
       { href: "/school", label: t("Overview"), icon: "home" },
       { href: "/school/teachers", label: t("Teachers"), icon: "users" },
+      { href: "/school/analysis", label: t("Student analysis"), icon: "chart" },
       settings,
     ];
   if (s.role === "teacher")

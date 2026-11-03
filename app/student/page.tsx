@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { myParentReportLink } from "@/app/actions/auth";
 import { TopBar } from "@/components/dash-shell";
 import { Avatar, Icon, LessonIcon, fmtDate, typeLabel } from "@/components/ui";
 import { getCompletedLessons, getMySubscriptions, getTeacherById } from "@/lib/data";
@@ -14,6 +15,7 @@ export default async function StudentHome() {
   const s = await requireRole("student");
   const subs = await getMySubscriptions(s.userId);
   const done = await getCompletedLessons(s.userId);
+  const parentLink = await myParentReportLink();
   const teachers = (await Promise.all(subs.map((x) => getTeacherById(x.teacherId)))).filter((x) => x !== null);
   const days = Math.max(0, Math.ceil((EXAM_DATE.getTime() - Date.now()) / 864e5));
   const first = s.fullName.split(" ")[0] || "";
@@ -118,6 +120,27 @@ export default async function StudentHome() {
               );
             })}
           </div>
+          {parentLink && (
+            <div className="card panel">
+              <div className="ph2">
+                <h2>{t("Your parent's report")}</h2>
+              </div>
+              <p className="muted">{t("Your parent can follow your progress, quiz marks and teachers' comments through this link, with no account.")}</p>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
+                <a
+                  className="btn btn-pri"
+                  target="_blank"
+                  rel="noopener"
+                  href={`https://wa.me/?text=${encodeURIComponent(t("This is my progress report on Hessa: {url}", { url: parentLink }))}`}
+                >
+                  {t("Send on WhatsApp")}
+                </a>
+                <a className="btn btn-ghost" href={parentLink} target="_blank" rel="noopener">
+                  {t("See what they see")}
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

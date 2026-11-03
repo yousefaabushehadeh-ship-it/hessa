@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TopBar } from "@/components/dash-shell";
 import { fmtDate } from "@/components/ui";
 import { getLang, getT } from "@/lib/i18n-server";
@@ -14,7 +15,7 @@ export default async function Students() {
   const soon = rows.filter((r) => new Date(r.endsOn).getTime() - Date.now() < 7 * 864e5).length;
   return (
     <>
-      <TopBar title={t("Students")} sub={t("Who is subscribed, how far they've got, and who needs a follow-up.")} who={`${t("Teacher")} ${first}`} initial={x.initial} color={x.color} photoUrl={x.photoUrl} />
+      <TopBar title={t("Students")} sub={t("Who is subscribed, how far they've got, and who needs a follow-up. Open a student for their full analysis.")} who={`${t("Teacher")} ${first}`} initial={x.initial} color={x.color} photoUrl={x.photoUrl} />
       <div className="kpis">
         <div className="card stat">
           <div className="lbl">{t("Current subscribers")}</div>
@@ -55,7 +56,9 @@ export default async function Students() {
               {rows.map((r) => (
                 <tr key={r.id}>
                   <td>
-                    <b style={{ fontFamily: "var(--f-display)", fontWeight: 600 }}>{r.name}</b>
+                    <Link href={`/teacher/students/${r.id}`} className="link" style={{ fontWeight: 600 }}>
+                      {r.name}
+                    </Link>
                   </td>
                   <td className="muted hide-s">
                     {r.plan === "term" ? t("Term") : t("Monthly")} · {t("until {date}", { date: fmtDate(lang, r.endsOn) })}

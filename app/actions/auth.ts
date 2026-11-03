@@ -266,6 +266,20 @@ export async function myConsentLink(): Promise<string | null> {
   return data ? `${SITE_URL}/consent/${data.token}` : null;
 }
 
+/** Once the parent approves, the same link opens the child's report (/parent/[token]). */
+export async function myParentReportLink(): Promise<string | null> {
+  if (DEMO_MODE) return `${SITE_URL}/parent/demo`;
+  const supabase = await supabaseServer();
+  const { data } = await supabase
+    .from("parent_consents")
+    .select("token")
+    .eq("status", "approved")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data ? `${SITE_URL}/parent/${data.token}` : null;
+}
+
 export async function approveConsent(token: string): Promise<boolean> {
   const t = await getT();
   if (DEMO_MODE) {
