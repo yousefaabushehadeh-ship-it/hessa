@@ -45,6 +45,15 @@ export default async function SchoolHome() {
           </div>
         </div>
       </div>
+      <div className="card panel" style={{ marginBottom: 18 }}>
+        <div className="ph2">
+          <h2>{t("Student analysis")}</h2>
+          <Link className="link" href="/school/analysis">
+            {t("Open")}
+          </Link>
+        </div>
+        <p className="muted">{t("Progress, quiz averages and who needs a follow-up, in totals per teacher.")}</p>
+      </div>
       <div className="card panel">
         <div className="ph2">
           <h2>{t("Your teachers")}</h2>

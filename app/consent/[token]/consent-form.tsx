@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { approveConsent } from "@/app/actions/auth";
 import { useT } from "@/components/lang";
@@ -7,7 +8,18 @@ import { useT } from "@/components/lang";
 export function ConsentForm({ token }: { token: string }) {
   const t = useT();
   const [result, action, pending] = useActionState(async () => ((await approveConsent(token)) ? "ok" : "bad"), null as null | "ok" | "bad");
-  if (result === "ok") return <p className="form-ok">{t("Thank you. Approval recorded and your child's account is now active.")}</p>;
+  if (result === "ok")
+    return (
+      <>
+        <p className="form-ok">{t("Thank you. Approval recorded and your child's account is now active.")}</p>
+        <p>
+          {t("Keep this link: from now on it shows your child's report.")}{" "}
+          <Link className="link" href={`/parent/${token}`}>
+            {t("Open the report")}
+          </Link>
+        </p>
+      </>
+    );
   return (
     <form action={action} className="frm">
       {result === "bad" && <p className="form-error">{t("This link is not valid or has already been used.")}</p>}

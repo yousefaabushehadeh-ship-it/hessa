@@ -36,6 +36,8 @@ export const PRIVACY: LegalSection[] = [
     h: "Who can see your data",
     p: [
       "Your teacher sees your name, grade, progress and quiz scores in their own subjects only. They do not see your subscriptions with other teachers.",
+      "Your parent, if you are under 18 and they approved your account, sees your report through their approval link: your progress, quiz scores, worksheet marks and teachers' comments with each of your teachers.",
+      "If your teacher joined through a school, the school sees totals per teacher only, such as the number of students and the average progress. It does not see your name or your marks.",
       "Your public review shows your name. Teachers' public pages show their name, photo, subject, qualifications and prices.",
       "Service providers that run the platform for us, only for that purpose: Supabase (database and file storage), Twilio and WhatsApp (Meta) to send login codes, Bunny (video streaming), and our hosting provider. Some of them store data outside Jordan, and we choose providers with strong security safeguards.",
       "Authorities, only when Jordanian law requires it.",

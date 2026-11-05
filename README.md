@@ -32,7 +32,7 @@ npm run dev
 ## ربط Supabase (التشغيل الحقيقي)
 
 1. اعمل مشروع على https://supabase.com (الخطة المجانية بتكفي للبداية).
-2. من **SQL Editor** شغّل ملفات `supabase/migrations/` بالترتيب (`0001` و`0002` و`0003`)، وبعدها `supabase/seed.sql` إذا بدك البيانات النموذجية.
+2. من **SQL Editor** شغّل ملفات `supabase/migrations/` بالترتيب (`0001` لحد `0006`)، وبعدها `supabase/seed.sql` إذا بدك البيانات النموذجية.
 3. من **Authentication → Providers** فعّل **Phone**، واربطه بمزوّد رسائل (Twilio أو MessageBird أو Vonage).
 4. انسخ `.env.example` لـ `.env.local` وعبّي القيم من **Project Settings → API**.
 5. `npm run build && npm start`.

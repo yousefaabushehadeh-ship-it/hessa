@@ -22,6 +22,8 @@ export default async function Consent({ params }: { params: Promise<{ token: str
           <ul className="ul">
             <li>{t("You can withdraw your approval and delete the account at any time, by emailing support@hessa.jo.")}</li>
             <li>{t("The teacher sees the student's name and progress in their subjects only.")}</li>
+            <li>{t("After you approve, this same link shows you your child's report: progress, quiz marks and teachers' comments.")}</li>
+            <li>{t("If your child's teacher works with a school, the school sees totals only, never your child's marks.")}</li>
           </ul>
           <ConsentForm token={token} />
         </div>
