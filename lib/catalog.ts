@@ -1,11 +1,11 @@
 // Grades and subjects a student picks from. Values are stored in Arabic, like the rest
 // of the sample data, and shown in English through dataLabel().
 
-export const TAWJIHI = ["توجيهي علمي", "توجيهي أدبي", "توجيهي صناعي"];
+export const GRADE12 = ["الثاني عشر علمي", "الثاني عشر أدبي", "الثاني عشر صناعي"];
 
-/** What a student studies in, from Grade 1 to the Tawjihi tracks. */
+/** What a student studies in, from Grade 1 to the Grade 12 tracks. */
 export const GRADES = [
-  ...TAWJIHI,
+  ...GRADE12,
   "الصف الحادي عشر",
   "الصف العاشر",
   "الصف التاسع",
@@ -21,14 +21,14 @@ export const GRADES = [
 
 /** Groups a teacher can pick in addition to a single grade. */
 const GROUPS: Record<string, string[]> = {
-  "جميع الفروع": TAWJIHI,
+  "جميع الفروع": GRADE12,
   "الصفوف 9 لـ 11": ["الصف التاسع", "الصف العاشر", "الصف الحادي عشر"],
   "الصفوف 5 لـ 8": ["الصف الخامس", "الصف السادس", "الصف السابع", "الصف الثامن"],
   "الصفوف 1 لـ 4": ["الصف الأول", "الصف الثاني", "الصف الثالث", "الصف الرابع"],
 };
 
 /** What a teacher can say they teach. */
-export const TEACHER_GRADES = [...TAWJIHI, ...Object.keys(GROUPS), ...GRADES.slice(TAWJIHI.length)];
+export const TEACHER_GRADES = [...GRADE12, ...Object.keys(GROUPS), ...GRADES.slice(GRADE12.length)];
 
 export const SUBJECT_LIST = [
   "رياضيات",

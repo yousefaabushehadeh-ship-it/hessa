@@ -25,7 +25,7 @@ export function ReportBody({ r, lang }: { r: StudentReport; lang: Lang }) {
   const t = makeT(lang);
   const handedIn = r.worksheets.length;
   return (
-    <>
+    <div className="report">
       <div className="kpis">
         <div className="card stat">
           <div className="lbl">{t("Progress")}</div>
@@ -59,7 +59,7 @@ export function ReportBody({ r, lang }: { r: StudentReport; lang: Lang }) {
         </div>
       </div>
       {r.weak.length > 0 && (
-        <div className="card panel" style={{ marginBottom: 18 }}>
+        <div className="card panel">
           <div className="ph2">
             <h2>{t("Needs more practice")}</h2>
           </div>
@@ -130,6 +130,6 @@ export function ReportBody({ r, lang }: { r: StudentReport; lang: Lang }) {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

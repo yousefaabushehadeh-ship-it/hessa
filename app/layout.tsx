@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "Hessa: your teacher, all their lessons in one place", template: "%s | Hessa" },
-  description: "Hessa connects Jordanian Tawjihi teachers with their students: videos, notes, quizzes and live classes.",
+  description: "Hessa connects Jordanian teachers with their students: videos, notes, quizzes and live classes.",
 };
 
 export const viewport: Viewport = { themeColor: "#0f4c45", width: "device-width", initialScale: 1 };
