@@ -96,7 +96,7 @@ export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginSt
         await setDemoSession({ userId: "3b8e1d47-2a9c-4f60-8d15-6e7a0c9b2f34", role: "teacher", fullName: TEACHERS.find((x) => x.id === DEMO_TEACHER_ID)!.name, teacherId: DEMO_TEACHER_ID, consent: "not_needed" });
         redirect("/teacher");
       }
-      await setDemoSession({ userId: DEMO_STUDENT.id, role: "student", fullName: DEMO_STUDENT.fullName, grade: "توجيهي علمي", consent: "not_needed" });
+      await setDemoSession({ userId: DEMO_STUDENT.id, role: "student", fullName: DEMO_STUDENT.fullName, grade: "الثاني عشر علمي", consent: "not_needed" });
       redirect(safeNext(prev.next));
     }
     if (prev.as === "admin") return { ...prev, step: "phone", error: t("Admin accounts are created by the Hessa team.") };

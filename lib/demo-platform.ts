@@ -83,7 +83,7 @@ export const demoPlatform: Store = (g.__hessaPlatform ??= {
     },
   ],
   applicants: [
-    { userId: "teacher-787654321", name: "مها العتوم", phone: "+962787654321", subject: "كيمياء", grade: "توجيهي علمي", city: "جرش", createdAt: "2026-10-26" },
+    { userId: "teacher-787654321", name: "مها العتوم", phone: "+962787654321", subject: "كيمياء", grade: "الثاني عشر علمي", city: "جرش", createdAt: "2026-10-26" },
   ],
   hiddenReviews: [],
 });

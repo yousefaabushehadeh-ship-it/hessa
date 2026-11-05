@@ -129,7 +129,15 @@ export async function getMySubscriptions(userId: string): Promise<Subscription[]
 }
 
 export async function getCompletedLessons(userId: string): Promise<Set<string>> {
-  if (DEMO_MODE) return new Set(["khaled-u0-l0", "khaled-u0-l1", "khaled-u2-l2"]);
+  if (DEMO_MODE) {
+    // The demo student has finished the first lessons of each teacher, matching their progress.
+    const out = new Set<string>();
+    for (const sub of DEMO_STUDENT.subscriptions) {
+      const lessons = TEACHERS.find((t) => t.id === sub.teacherId)?.units.flatMap((u) => u.lessons) ?? [];
+      lessons.slice(0, Math.round((lessons.length * sub.progress) / 100)).forEach((l) => out.add(l.id));
+    }
+    return out;
+  }
   const supabase = await supabaseServer();
   const { data } = await supabase.from("lesson_progress").select("lesson_id").eq("student_id", userId);
   return new Set((data ?? []).map((r) => r.lesson_id as string));

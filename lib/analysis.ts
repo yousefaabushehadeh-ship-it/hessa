@@ -142,7 +142,7 @@ export async function getParentReport(token: string): Promise<ParentReport | nul
     const skills: Record<string, number> = { khaled: 0.72, sami: 0.45 };
     return {
       name: DEMO_STUDENT.fullName,
-      grade: "توجيهي علمي",
+      grade: "الثاني عشر علمي",
       teachers: DEMO_STUDENT.subscriptions.flatMap((sub, i) => {
         const tc = TEACHERS.find((x) => x.id === sub.teacherId);
         if (!tc) return [];

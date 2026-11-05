@@ -254,8 +254,8 @@ export async function listAllStudents(): Promise<AdminStudent[]> {
   if (DEMO_MODE) {
     const names = ["ليان الخوالدة", "عبدالرحمن بني هاني", "تالا العبادي", "سارة الرواشدة", "كرم الحياري", "زيد العدوان", "رهف المعايطة"];
     return [
-      { id: DEMO_STUDENT.id, name: DEMO_STUDENT.fullName, phone: "+962791234567", grade: "توجيهي علمي", consent: "not_needed", subs: 2, createdAt: "2026-09-14" },
-      ...names.map((name, i) => ({ id: `demo-${i}`, name, phone: `+96278${String(1000000 + i * 137531).slice(0, 7)}`, grade: "توجيهي علمي", consent: i === 6 ? "pending" : "approved", subs: i === 6 ? 0 : 1, createdAt: "2026-10-0" + (i + 1) })),
+      { id: DEMO_STUDENT.id, name: DEMO_STUDENT.fullName, phone: "+962791234567", grade: "الثاني عشر علمي", consent: "not_needed", subs: 2, createdAt: "2026-09-14" },
+      ...names.map((name, i) => ({ id: `demo-${i}`, name, phone: `+96278${String(1000000 + i * 137531).slice(0, 7)}`, grade: "الثاني عشر علمي", consent: i === 6 ? "pending" : "approved", subs: i === 6 ? 0 : 1, createdAt: "2026-10-0" + (i + 1) })),
     ];
   }
   const db = supabaseAdmin();

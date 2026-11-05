@@ -31,7 +31,7 @@ export default async function Services() {
           <div>
             <h1>{t("Services")}</h1>
             <p className="lead">
-              {t("Hessa connects you with your own teacher for Jordan's Tawjihi exams. Everything you need is in one place.")}
+              {t("Hessa connects you with your own teacher for your studies. Everything you need is in one place.")}
             </p>
             <div className="ctas">
               <Link className="btn btn-pri" href="/signup/student">

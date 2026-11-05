@@ -41,7 +41,7 @@ export default async function Home() {
         <div className="wrap">
           <div>
             <span className="eyebrow">
-              <Icon name="check" sm /> {t("Built for students preparing for Jordan's Tawjihi national exam")}
+              <Icon name="check" sm /> {t("Built for students and teachers in Jordan, for every stage of study")}
             </span>
             <h1>
               {t("Your favorite teacher,")}
@@ -76,7 +76,7 @@ export default async function Home() {
               </div>
               <div>
                 <b className="num">{SUBJECTS.length}</b>
-                <span>{t("Tawjihi subjects")}</span>
+                <span>{t("school subjects")}</span>
               </div>
               <div>
                 <b className="num">{t("Free")}</b>

@@ -89,7 +89,7 @@ svg.i.sm{width:16px;height:16px}
 .hero .facts b{display:block;font-family:var(--f-display);font-size:24px}
 .hero .facts span{color:var(--muted);font-size:13px}
 .hv{position:relative;display:grid;gap:14px}
-.hv .next{transform:rotate(-1.5deg)}
+.hv .next{transform:none}
 .hv .mini{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .next{background:linear-gradient(115deg,#0f5a51 0%,#11806f 55%,#16b5a2 100%);color:#fff;border-radius:var(--r);padding:24px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .next .k{opacity:.85;font-size:14px}
@@ -228,6 +228,7 @@ footer.site .cols div{display:grid;gap:4px}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .g2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px;align-items:start}
 .col{display:grid;gap:24px;min-width:0}
+.report{display:grid;gap:24px;min-width:0}
 .panel{padding:26px}
 .ph2{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .ph2 h2{font-size:20px}
@@ -536,3 +537,23 @@ footer.site a{text-decoration:none}
 .pay-box .big{font-family:var(--f-display);font-size:22px;font-weight:700}
 .tbl .wrap-cell{white-space:normal;min-width:160px}
 .admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+
+/* Student home: the continue card and "where you reached" per subject. */
+.next.go-on .bar{margin-top:12px;max-width:420px;background:rgba(255,255,255,.25)}
+.next.go-on .bar>i{background:#fff}
+.next.go-on .btn{display:inline-flex;align-items:center;gap:8px}
+.reach{padding-block:18px;border-top:1px solid var(--line);display:grid;gap:12px}
+.reach-h{display:flex;align-items:center;gap:14px}
+.reach-h .t{flex:1;min-width:0}
+.reach-h .t b{display:block;font-family:var(--f-display);font-weight:600}
+.reach-h .t span{font-size:13px;color:var(--muted)}
+.reach-pct{font-family:var(--f-display);font-size:22px}
+.units{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.unit{width:28px;height:28px;border-radius:99px;display:grid;place-items:center;font-size:12px;font-weight:600;background:var(--track);color:var(--muted)}
+.unit.done{background:var(--ok-bg);color:var(--ok-fg)}
+.unit.now{background:var(--teal);color:#fff;box-shadow:0 0 0 3px var(--ok-bg)}
+.unit-now{font-size:13px;margin-inline-start:6px}
+.reach .lesson{border-radius:var(--r-sm);background:var(--soft);border-top:0}
+.reach .lesson:hover{background:var(--line)}
+.kpis.k3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:1100px){.kpis.k3{grid-template-columns:1fr 1fr}.kpis.k3>:last-child{grid-column:1/-1}}
