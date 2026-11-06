@@ -188,6 +188,9 @@ footer.site .cols div{display:grid;gap:4px}
 .lt-quiz{background:var(--ok-bg);color:var(--ok-fg)}
 .lt-live{background:var(--bad-bg);color:var(--bad-fg)}
 .lt-worksheet{background:color-mix(in srgb,var(--teal) 14%,var(--card));color:var(--teal-deep)}
+.lt-book{background:color-mix(in srgb,var(--orange) 16%,var(--card));color:var(--ink)}
+.lt-summary{background:var(--warn-bg);color:var(--warn-fg)}
+.lt-link{background:var(--soft);color:var(--teal-deep)}
 .side{display:grid;gap:20px;align-self:start;position:sticky;top:90px}
 .buy{padding:24px;display:grid;gap:14px}
 .opt{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer}

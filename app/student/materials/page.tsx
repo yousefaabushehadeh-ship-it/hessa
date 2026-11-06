@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { TopBar } from "@/components/dash-shell";
+import { KitList } from "@/components/kit";
 import { Avatar, Icon, LessonIcon, typeLabel } from "@/components/ui";
 import { getCompletedLessons, getMySubscriptions, getTeacherById } from "@/lib/data";
 import { dataLabel } from "@/lib/i18n";
 import { getLang, getT } from "@/lib/i18n-server";
+import { listResources } from "@/lib/resources";
 import { requireRole } from "@/lib/session";
 
 export default async function Materials() {
@@ -13,12 +15,13 @@ export default async function Materials() {
   const subs = await getMySubscriptions(s.userId);
   const done = await getCompletedLessons(s.userId);
   const teachers = (await Promise.all(subs.map((x) => getTeacherById(x.teacherId)))).filter((x) => x !== null);
+  const kits = await Promise.all(teachers.map((x) => listResources(x.id, s)));
   const first = s.fullName.split(" ")[0];
   return (
     <>
       <TopBar
         title={t("Study materials")}
-        sub={t("All lessons, notes and quizzes from your teachers, organized by chapter.")}
+        sub={t("All lessons, notes and quizzes from your teachers, organized by chapter, plus each teacher's study kit.")}
         who={first}
         initial={first[0] ?? "S"}
         color="var(--orange)"
@@ -28,7 +31,8 @@ export default async function Materials() {
           {t("No study materials yet.")} <Link className="link" href="/student/redeem">{t("Activate a code from your teacher")}</Link> {t("to open their study materials.")}
         </div>
       )}
-      {teachers.map((x) => {
+      {teachers.map((x, xi) => {
+        const kit = kits[xi];
         const all = x.units.flatMap((u) => u.lessons);
         const dn = all.filter((l) => done.has(l.id)).length;
         return (
@@ -75,6 +79,17 @@ export default async function Materials() {
                 ))}
               </details>
             ))}
+            {kit.length > 0 && (
+              <details className="unit">
+                <summary>
+                  <span>{t("Study kit")}</span>
+                  <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}>
+                    {t("Books, explainer videos, summaries and links")}
+                  </span>
+                </summary>
+                <KitList items={kit} lang={lang} open signedIn />
+              </details>
+            )}
           </div>
         );
       })}
