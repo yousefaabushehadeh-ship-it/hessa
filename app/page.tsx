@@ -40,9 +40,6 @@ export default async function Home() {
       <section className="hero gut">
         <div className="wrap">
           <div>
-            <span className="eyebrow">
-              <Icon name="check" sm /> {t("Built for students and teachers in Jordan, for every stage of study")}
-            </span>
             <h1>
               {t("Your favorite teacher,")}
               <br />
