@@ -47,7 +47,6 @@ export const AR: Record<string, string> = {
   "Back to content": "رجوع للمحتوى",
   "Back to study materials": "رجوع للمواد",
   "Browse teachers": "تصفح المعلمين",
-  "Built for students and teachers in Jordan, for every stage of study": "مصممة للطلاب ومعلميهم في الأردن، لكل مراحل الدراسة",
   "Change number": "غيّر الرقم",
   "Choose a PDF file.": "اختر ملف PDF.",
   "Choose a star rating.": "اختر تقييم بالنجوم.",
