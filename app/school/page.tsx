@@ -15,7 +15,7 @@ export default async function SchoolHome() {
   const waiting = invites.filter((x) => !x.used).length;
   return (
     <>
-      <TopBar title={school.name} sub={dataLabel(lang, school.city)} who={s.fullName} initial={school.name[0]} color="var(--rail)" />
+      <TopBar title={school.name} sub="" who={s.fullName} initial={school.name[0]} color="var(--rail)" />
       {!school.verified && (
         <div className="card panel" style={{ marginBottom: 18 }}>
           <div className="ph2">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SiteNav } from "@/components/site";
 import { Icon } from "@/components/ui";
-import { CITIES, GRADES, SUBJECT_LIST, TEACHER_GRADES } from "@/lib/catalog";
+import { GRADES, SUBJECT_LIST, TEACHER_GRADES } from "@/lib/catalog";
 import { DEMO_MODE } from "@/lib/env";
 import { dataLabel } from "@/lib/i18n";
 import { getLang, getT } from "@/lib/i18n-server";
@@ -27,7 +27,6 @@ export async function Portal({ as, signup, next }: { as: Who; signup?: boolean; 
           subjects={opts(SUBJECT_LIST)}
           grades={opts(GRADES)}
           teacherGrades={opts(TEACHER_GRADES)}
-          cities={opts(CITIES)}
         />
       </div>
     </>

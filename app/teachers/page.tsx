@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { SiteFooter, SiteNav } from "@/components/site";
 import { Icon, TeacherCard } from "@/components/ui";
-import { CITIES, GRADES as CATALOG_GRADES, SUBJECT_LIST } from "@/lib/catalog";
+import { GRADES as CATALOG_GRADES, SUBJECT_LIST } from "@/lib/catalog";
 import { listTeachers } from "@/lib/data";
 import { dataLabel } from "@/lib/i18n";
 import { getLang, getT } from "@/lib/i18n-server";
@@ -28,7 +28,6 @@ export default async function Browse({ searchParams }: { searchParams: Search })
     q: sp.q,
     subject: sp.subject,
     grade: sp.grade,
-    city: sp.city,
     sort: (["rating", "students", "price"].includes(sp.sort ?? "") ? sp.sort : "rating") as TeacherFilters["sort"],
   };
   const list = await listTeachers(f);
@@ -59,19 +58,6 @@ export default async function Browse({ searchParams }: { searchParams: Search })
                 {GRADES.map((g) => (
                   <option key={g} value={g}>
                     {g ? dataLabel(lang, g) : t("All")}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="h" htmlFor="f-city">
-                {t("City")}
-              </label>
-              <select className="field" id="f-city" name="city" defaultValue={f.city ?? ""}>
-                <option value="">{t("All cities")}</option>
-                {CITIES.map((c) => (
-                  <option key={c} value={c}>
-                    {dataLabel(lang, c)}
                   </option>
                 ))}
               </select>
@@ -109,7 +95,7 @@ export default async function Browse({ searchParams }: { searchParams: Search })
                 list.map((x) => <TeacherCard key={x.id} t={x} lang={lang} />)
               ) : (
                 <div className="card empty" style={{ gridColumn: "1/-1" }}>
-                  {t("No teachers match these filters right now. Try another subject or city.")}
+                  {t("No teachers match these filters right now. Try another subject or grade.")}
                 </div>
               )}
             </div>

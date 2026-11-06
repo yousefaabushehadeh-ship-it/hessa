@@ -1,7 +1,6 @@
 import { setSchoolVerified } from "@/app/actions/admin";
 import { AdminTop } from "@/components/admin-top";
 import { fmtDate } from "@/components/ui";
-import { dataLabel } from "@/lib/i18n";
 import { getLang, getT } from "@/lib/i18n-server";
 import { listAllSchools } from "@/lib/platform";
 
@@ -32,9 +31,6 @@ export default async function AdminSchools() {
                   <tr key={x.id}>
                     <td>
                       <b>{x.name}</b>
-                      <div className="muted" style={{ fontSize: 12.5 }}>
-                        {dataLabel(lang, x.city)}
-                      </div>
                     </td>
                     <td className="muted hide-s">{x.ownerName}</td>
                     <td className="num">{x.teachers}</td>
