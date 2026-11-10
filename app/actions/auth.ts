@@ -3,7 +3,8 @@
 import { getT } from "@/lib/i18n-server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { DEMO_MODE, DEMO_OTP, OTP_CHANNEL, SITE_URL } from "@/lib/env";
+import { createClient } from "@supabase/supabase-js";
+import { DEMO_MODE, DEMO_OTP, OTP_CHANNEL, SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/env";
 import { DEMO_SCHOOL_ID, DEMO_STUDENT, DEMO_TEACHER_ID, TEACHERS } from "@/lib/demo-data";
 import { DEMO_SUBS_COOKIE } from "@/lib/data";
 import { demoPlatform } from "@/lib/demo-platform";
@@ -276,16 +277,71 @@ export async function myParentReportLink(): Promise<string | null> {
   return data ? `${SITE_URL}/parent/${data.token}` : null;
 }
 
-export async function approveConsent(token: string): Promise<boolean> {
+export type ConsentState = { step: "send" | "code" | "done"; error?: string; notice?: string };
+
+const maskPhone = (p: string) => {
+  const d = p.replace(/\D/g, "").replace(/^962/, "");
+  return `0${d.slice(0, 2)} ••• ${d.slice(-3)}`;
+};
+
+/** The parent's number for this approval link, masked (07x ••• 123), or null when the link is used or wrong. */
+export async function consentPhoneHint(token: string): Promise<string | null> {
+  if (DEMO_MODE) return token === "demo" ? maskPhone("+962790000123") : null;
+  const { data } = await supabaseAdmin().from("parent_consents").select("parent_phone").eq("token", token).eq("status", "pending").maybeSingle();
+  return data ? maskPhone(data.parent_phone) : null;
+}
+
+/** A Supabase client that keeps no session, so checking the parent's code never signs anyone in. */
+function otpClient() {
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+/**
+ * Parent approval, in two steps: a code goes to the parent's own number (the one the student typed),
+ * and only that code approves. Holding the link alone is no longer enough.
+ */
+export async function parentConsent(token: string, prev: ConsentState, fd: FormData): Promise<ConsentState> {
   const t = await getT();
+  const sending = fd.get("send") === "1";
+
   if (DEMO_MODE) {
+    if (token !== "demo") return { step: "send", error: t("This link is not valid or has already been used.") };
+    if (sending) return { step: "code", notice: t("We sent a code to your number.") };
+    if (String(fd.get("code") ?? "").replace(/\D/g, "") !== DEMO_OTP) return { ...prev, notice: undefined, error: t("Wrong code. Check it and try again.") };
     const s = await getSession();
-    if (s) await setDemoSession({ ...s, consent: "approved" });
-    return token === "demo";
+    if (s?.role === "student") await setDemoSession({ ...s, consent: "approved" });
+    return { step: "done" };
   }
-  const supabase = await supabaseServer();
-  const { data } = await supabase.rpc("approve_consent", { p_token: token });
-  return Boolean(data);
+
+  const admin = supabaseAdmin();
+  const { data: c } = await admin.from("parent_consents").select("parent_phone").eq("token", token).eq("status", "pending").maybeSingle();
+  if (!c) return { step: "send", error: t("This link is not valid or has already been used.") };
+  const phone = c.parent_phone as string;
+
+  if (sending) {
+    const { error } = await otpClient().auth.signInWithOtp({ phone, options: { channel: OTP_CHANNEL } });
+    if (error) {
+      console.error("parent code failed", error.status, error.code, error.message);
+      if (error.status === 429 || /rate limit|seconds/i.test(error.message)) return { ...prev, error: t("Please wait a minute before asking for a new code.") };
+      return { ...prev, error: t("We couldn't send the code. Please try again shortly.") };
+    }
+    return { step: "code", notice: t("We sent a code to your number.") };
+  }
+
+  const code = String(fd.get("code") ?? "").replace(/\D/g, "");
+  if (code.length !== 6) return { ...prev, notice: undefined, error: t("The code has 6 digits.") };
+  const { data, error } = await otpClient().auth.verifyOtp({ phone, token: code, type: "sms" });
+  const user = data.user;
+  if (error || !user || user.phone?.replace(/\D/g, "") !== phone.replace(/\D/g, ""))
+    return { ...prev, notice: undefined, error: t("The code is wrong or has expired.") };
+
+  const { data: ok } = await admin.rpc("approve_consent", { p_token: token });
+  // Checking the code made a login for the parent's number. If it is a fresh, empty one, remove it
+  // so it doesn't show up as a student; a parent who already uses Hessa keeps their account.
+  const { data: p } = await admin.from("profiles").select("full_name").eq("id", user.id).maybeSingle();
+  if (!p?.full_name && Date.now() - new Date(user.created_at).getTime() < 15 * 60_000) await admin.auth.admin.deleteUser(user.id);
+  if (!ok) return { step: "send", error: t("This link is not valid or has already been used.") };
+  return { step: "done" };
 }
 
 export async function signOut() {

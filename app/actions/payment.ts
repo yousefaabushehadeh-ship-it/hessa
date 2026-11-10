@@ -7,6 +7,7 @@ import { TEACHERS } from "@/lib/demo-data";
 import { demoPlatform } from "@/lib/demo-platform";
 import { getTeacherById } from "@/lib/data";
 import { getT } from "@/lib/i18n-server";
+import { demoNotify } from "@/lib/notifications";
 import { getSession, requireRole } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { PaymentMethod } from "@/lib/types";
@@ -35,6 +36,7 @@ export async function requestPayment(teacherId: string, _prev: PayState, fd: For
       amount: plan === "term" ? teacher.priceTerm : teacher.priceMonth, method, reference, status: "pending", note: null,
       createdAt: new Date().toISOString().slice(0, 10),
     });
+    demoNotify(`teacher:${teacherId}`, "payment_new", { student: s.fullName, amount: String(plan === "term" ? teacher.priceTerm : teacher.priceMonth) }, "/teacher/payments");
   } else {
     const supabase = await supabaseServer();
     const { error } = await supabase.rpc("request_payment", { p_teacher: teacherId, p_plan: plan, p_method: method, p_reference: reference });
@@ -55,6 +57,8 @@ export async function reviewPayment(id: string, approve: boolean, fd?: FormData)
     if (!p || (s.role === "teacher" && p.teacherId !== s.teacherId)) return;
     p.status = approve ? "approved" : "rejected";
     p.note = note;
+    const slug = TEACHERS.find((x) => x.id === p.teacherId)?.slug ?? "";
+    demoNotify(p.studentId, approve ? "payment_approved" : "payment_rejected", { teacher: p.teacherName, note: note ?? "" }, approve ? "/student/materials" : `/student/subscribe/${slug}`);
     if (approve) {
       const tc = await getTeacherById(p.teacherId);
       if (tc) tc.studentCount += 1;

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { myConsentLink } from "@/app/actions/auth";
 import { DashShell } from "@/components/dash-shell";
 import { navFor } from "@/lib/nav";
+import { unreadCount } from "@/lib/notifications";
 import { SignOut } from "@/components/sign-out";
 import { DEMO_MODE } from "@/lib/env";
 import { getT } from "@/lib/i18n-server";
@@ -14,7 +15,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const s = await requireRole("student");
   if (!s.fullName) redirect("/login/student");
   const link = s.consent === "pending" ? await myConsentLink() : null;
-  const NAV = navFor(s, t);
+  const NAV = navFor(s, t, await unreadCount(s));
   return (
     <DashShell nav={NAV} footer={<SignOut />}>
       {s.consent === "pending" ? (

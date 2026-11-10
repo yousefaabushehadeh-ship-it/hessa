@@ -1,6 +1,7 @@
 import { setLang } from "@/app/actions/lang";
 import { DashShell, TopBar } from "@/components/dash-shell";
 import { navFor } from "@/lib/nav";
+import { unreadCount } from "@/lib/notifications";
 import { DeleteForm } from "./delete-form";
 import { SignOut } from "@/components/sign-out";
 import { getLang, getT } from "@/lib/i18n-server";
@@ -11,7 +12,7 @@ export default async function Settings() {
   const lang = await getLang();
   const s = await requireSession();
   const first = s.fullName.split(" ")[0] || "";
-  const NAV = navFor(s, t);
+  const NAV = navFor(s, t, await unreadCount(s));
   const roles = { student: t("Student"), teacher: t("Teacher"), school: t("School"), admin: t("Hessa team") };
   return (
     <DashShell nav={NAV} footer={<SignOut />}>

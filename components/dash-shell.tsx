@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { Icon } from "@/components/ui";
 import { useT } from "@/components/lang";
 
-export type NavItem = { href: string; label: string; icon: string };
+export type NavItem = { href: string; label: string; icon: string; badge?: number };
 
 export function DashShell({ nav, children, footer }: { nav: NavItem[]; children: ReactNode; footer?: ReactNode }) {
   const path = usePathname();
@@ -24,6 +24,7 @@ export function DashShell({ nav, children, footer }: { nav: NavItem[]; children:
             <Link key={n.href} href={n.href} className={isOn(n.href, i) ? "on" : ""}>
               <Icon name={n.icon} />
               {n.label}
+              {n.badge ? <span className="nbadge">{n.badge > 9 ? "9+" : n.badge}</span> : null}
             </Link>
           ))}
         </nav>
@@ -35,6 +36,7 @@ export function DashShell({ nav, children, footer }: { nav: NavItem[]; children:
           <Link key={n.href} href={n.href} className={isOn(n.href, i) ? "on" : ""}>
             <Icon name={n.icon} />
             <span>{n.label.split(" ")[0]}</span>
+            {n.badge ? <span className="nbadge">{n.badge > 9 ? "9+" : n.badge}</span> : null}
           </Link>
         ))}
       </nav>

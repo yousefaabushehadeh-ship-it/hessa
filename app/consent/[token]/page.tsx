@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SiteNav } from "@/components/site";
 import { getT } from "@/lib/i18n-server";
+import { consentPhoneHint } from "@/app/actions/auth";
+import { DEMO_MODE } from "@/lib/env";
 import { ConsentForm } from "./consent-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Consent({ params }: { params: Promise<{ token: string }> }) {
   const t = await getT();
   const { token } = await params;
+  const phone = await consentPhoneHint(token);
   return (
     <>
       <SiteNav />
@@ -25,7 +28,7 @@ export default async function Consent({ params }: { params: Promise<{ token: str
             <li>{t("After you approve, this same link shows you your child's report: progress, quiz marks and teachers' comments.")}</li>
             <li>{t("If your child's teacher works with a school, the school sees totals only, never your child's marks.")}</li>
           </ul>
-          <ConsentForm token={token} />
+          {phone ? <ConsentForm token={token} phone={phone} demo={DEMO_MODE} /> : <p className="form-error">{t("This link is not valid or has already been used.")}</p>}
         </div>
       </div>
     </>
