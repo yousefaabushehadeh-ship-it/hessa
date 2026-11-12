@@ -1,8 +1,11 @@
--- 1) Parent approval needs a code sent to the parent's own number.
--- Before, anyone holding the link (the student too) could approve. Now only the server calls
--- approve_consent, after the parent typed the code that went to parent_phone.
+-- 1) No parent approval step any more: every account is active right away.
+-- parent_consents stays as the store for the private report link a student can send a parent.
+alter table public.profiles alter column consent set default 'not_needed';
+update public.profiles set consent = 'not_needed' where consent in ('pending', 'revoked');
+update public.parent_consents set status = 'approved', approved_at = coalesce(approved_at, now()) where status = 'pending';
+alter table public.parent_consents alter column parent_phone set default '';
+-- Approving went through this function; nothing calls it now.
 revoke execute on function public.approve_consent(text) from public, anon, authenticated;
-grant execute on function public.approve_consent(text) to service_role;
 
 -- 2) In-app notifications: a new payment or hand-in for the teacher, a decision or a mark for the student.
 -- The text is built in the app from kind + params, so it follows the reader's language.
@@ -73,14 +76,3 @@ begin
 end $$;
 create trigger notify_handin after insert or update of status on public.worksheet_submissions
   for each row execute function public.on_handin_change();
-
-create or replace function public.on_consent_approved() returns trigger
-language plpgsql security definer set search_path = public as $$
-begin
-  if old.status = 'pending' and new.status = 'approved' then
-    perform public.notify(new.student_id, 'consent_approved', '{}'::jsonb, '/student/find');
-  end if;
-  return new;
-end $$;
-create trigger notify_consent after update of status on public.parent_consents
-  for each row execute function public.on_consent_approved();

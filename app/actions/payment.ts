@@ -24,7 +24,6 @@ export async function requestPayment(teacherId: string, _prev: PayState, fd: For
   const method = METHODS.includes(fd.get("method") as PaymentMethod) ? (fd.get("method") as PaymentMethod) : "cliq";
   const reference = String(fd.get("reference") ?? "").trim().slice(0, 60);
   if (reference.length < 3) return { error: t("Enter the transfer reference from your bank or wallet app.") };
-  if (s.consent === "pending") return { error: t("Your parent needs to approve your account first.") };
 
   if (DEMO_MODE) {
     const teacher = TEACHERS.find((x) => x.id === teacherId && x.verified);

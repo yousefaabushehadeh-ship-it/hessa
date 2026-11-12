@@ -1,5 +1,6 @@
 "use client";
 
+import { PhoneField } from "@/components/phone-field";
 import { useActionState, useRef } from "react";
 import { addTeacherInvite, type InviteState } from "@/app/actions/school";
 import { useT } from "@/components/lang";
@@ -26,12 +27,7 @@ export function InviteForm({ subjects, grades }: { subjects: Option[]; grades: O
         <label className="h" htmlFor="i-phone">
           {t("Mobile number")}
         </label>
-        <div className="inrow" dir="ltr">
-          <span className="field num" style={{ flex: "0 0 auto", width: "auto" }}>
-            +962
-          </span>
-          <input className="field num" id="i-phone" name="phone" inputMode="numeric" required placeholder="7X XXX XXXX" />
-        </div>
+        <PhoneField id="i-phone" autoComplete="off" />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div>

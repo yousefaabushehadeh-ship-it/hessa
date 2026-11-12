@@ -3,8 +3,8 @@
 import { getT } from "@/lib/i18n-server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-import { DEMO_MODE, DEMO_OTP, OTP_CHANNEL, SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/env";
+import { DEMO_MODE, DEMO_OTP, OTP_CHANNEL, SITE_URL } from "@/lib/env";
+import { toE164 } from "@/lib/phone";
 import { DEMO_SCHOOL_ID, DEMO_STUDENT, DEMO_TEACHER_ID, TEACHERS } from "@/lib/demo-data";
 import { DEMO_SUBS_COOKIE } from "@/lib/data";
 import { demoPlatform } from "@/lib/demo-platform";
@@ -31,8 +31,6 @@ export type LoginState = {
   error?: string;
 };
 
-const PHONE_RE = /^7[789]\d{7}$/;
-const cleanPhone = (v: FormDataEntryValue | null) => String(v ?? "").replace(/\D/g, "").replace(/^(962|0)/, "");
 const safeNext = (v: string | undefined) => (v && v.startsWith("/") && !v.startsWith("//") ? v : "/student");
 const COOKIE_OPTS = { httpOnly: true, sameSite: "lax" as const, path: "/", maxAge: 60 * 60 * 24 * 30 };
 
@@ -42,12 +40,12 @@ async function setDemoSession(s: Session) {
 
 export async function sendOtp(_prev: LoginState, fd: FormData): Promise<LoginState> {
   const t = await getT();
-  const phone = cleanPhone(fd.get("phone"));
+  const phone = toE164(fd.get("dial"), fd.get("phone"));
   const raw = String(fd.get("as"));
   const as: Portal = raw === "teacher" || raw === "school" || raw === "admin" ? raw : "student";
   const next = String(fd.get("next") ?? "") || undefined;
   const signup = fd.get("signup") === "1" || undefined;
-  if (!PHONE_RE.test(phone)) return { step: "phone", as, next, signup, error: t("Enter a valid Jordanian number starting with 77, 78 or 79.") };
+  if (!phone) return { step: "phone", as, next, signup, error: t("Enter a valid mobile number with its country code.") };
   if (!fd.get("agree")) return { step: "phone", phone, as, next, signup, error: t("You must agree to the terms and privacy policy.") };
   const error = await deliverOtp(phone);
   if (error) return { step: "phone", phone, as, next, signup, error: t(error) };
@@ -58,7 +56,7 @@ export async function sendOtp(_prev: LoginState, fd: FormData): Promise<LoginSta
 async function deliverOtp(phone: string): Promise<string | undefined> {
   if (DEMO_MODE) return;
   const supabase = await supabaseServer();
-  const { error } = await supabase.auth.signInWithOtp({ phone: `+962${phone}`, options: { channel: OTP_CHANNEL } });
+  const { error } = await supabase.auth.signInWithOtp({ phone, options: { channel: OTP_CHANNEL } });
   if (!error) return;
   console.error("sendOtp failed", error.status, error.code, error.message);
   // Supabase lets a number ask for a new code once a minute.
@@ -69,7 +67,7 @@ async function deliverOtp(phone: string): Promise<string | undefined> {
 /** "Send the code again" on the code step. */
 export async function resendOtp(prev: LoginState): Promise<LoginState> {
   const t = await getT();
-  if (!prev.phone || !PHONE_RE.test(prev.phone)) return { step: "phone", as: prev.as, next: prev.next, signup: prev.signup };
+  if (!prev.phone?.startsWith("+")) return { step: "phone", as: prev.as, next: prev.next, signup: prev.signup };
   const error = await deliverOtp(prev.phone);
   if (error) return { ...prev, notice: undefined, error: t(error) };
   return { ...prev, channel: OTP_CHANNEL, error: undefined, notice: t("We sent you a new code.") };
@@ -106,7 +104,7 @@ export async function verifyOtp(prev: LoginState, fd: FormData): Promise<LoginSt
 
   const supabase = await supabaseServer();
   // WhatsApp codes are checked the same way as SMS codes.
-  const { data, error } = await supabase.auth.verifyOtp({ phone: `+962${prev.phone}`, token, type: "sms" });
+  const { data, error } = await supabase.auth.verifyOtp({ phone: prev.phone!, token, type: "sms" });
   if (error || !data.user) return { ...prev, notice: undefined, error: t("The code is wrong or has expired.") };
   const { data: profile } = await supabase.from("profiles").select("role, full_name, consent").eq("id", data.user.id).single();
   const role = (profile?.role ?? "student") as Session["role"];
@@ -143,7 +141,7 @@ async function completeTeacherProfile(prev: LoginState, fd: FormData): Promise<L
   if (fullName.length < 3) return { ...prev, error: t("Enter your full name.") };
   if (!subject) return { ...prev, error: t("Choose the subject you teach.") };
   if (!grade) return { ...prev, error: t("Choose the grade you teach.") };
-  const phone = `+962${prev.phone}`;
+  const phone = prev.phone!;
 
   if (DEMO_MODE) {
     const userId = `teacher-${prev.phone}`;
@@ -219,129 +217,46 @@ export async function completeProfile(prev: LoginState, fd: FormData): Promise<L
   const t = await getT();
   const fullName = String(fd.get("name") ?? "").trim().slice(0, 80);
   const grade = pick(fd.get("grade"), GRADES);
-  const isMinor = fd.get("age") !== "adult";
-  const parentPhone = cleanPhone(fd.get("parent"));
   if (fullName.length < 3) return { ...prev, error: t("Enter your full name.") };
   if (!grade) return { ...prev, error: t("Choose your grade.") };
-  if (isMinor && !PHONE_RE.test(parentPhone)) return { ...prev, error: t("Enter a valid parent's number.") };
-  if (isMinor && parentPhone === prev.phone) return { ...prev, error: t("The parent's number must be different from yours.") };
 
   if (DEMO_MODE) {
-    await setDemoSession({ userId: DEMO_STUDENT.id, role: "student", fullName, grade, consent: isMinor ? "pending" : "not_needed" });
-    redirect(isMinor ? "/student" : prev.next ? safeNext(prev.next) : "/student/find");
+    await setDemoSession({ userId: DEMO_STUDENT.id, role: "student", fullName, grade, consent: "not_needed" });
+    redirect(prev.next ? safeNext(prev.next) : "/student/find");
   }
 
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return { step: "phone", as: "student", signup: prev.signup, error: t("Your session has ended. Please sign in again.") };
   const uid = auth.user.id;
-  await supabase.from("profiles").update({ full_name: fullName, grade, is_minor: isMinor, parent_phone: isMinor ? `+962${parentPhone}` : null }).eq("id", uid);
-  if (!isMinor) {
-    // Users can't change their own consent field (protect_fields), so the server does it.
-    await supabaseAdmin().from("profiles").update({ consent: "not_needed" }).eq("id", uid);
-    // New students pick their subject and teacher next.
-    redirect(prev.next ? safeNext(prev.next) : "/student/find");
-  }
-  const { error } = await supabase.from("parent_consents").insert({ student_id: uid, parent_phone: `+962${parentPhone}` });
-  if (error) return { ...prev, error: t("Something went wrong while preparing the approval request.") };
-  // The student area shows the consent link until the parent approves.
-  redirect("/student");
+  await supabase.from("profiles").update({ full_name: fullName, grade }).eq("id", uid);
+  // No parent approval step: the account is active right away. Users can't change consent themselves (protect_fields).
+  await supabaseAdmin().from("profiles").update({ consent: "not_needed" }).eq("id", uid);
+  // New students pick their subject and teacher next.
+  redirect(prev.next ? safeNext(prev.next) : "/student/find");
 }
 
-/** The link a student sends to their parent, while consent is pending. */
-export async function myConsentLink(): Promise<string | null> {
-  const t = await getT();
-  if (DEMO_MODE) return `${SITE_URL}/consent/demo`;
-  const supabase = await supabaseServer();
-  const { data } = await supabase
-    .from("parent_consents")
-    .select("token")
-    .eq("status", "pending")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data ? `${SITE_URL}/consent/${data.token}` : null;
-}
-
-/** Once the parent approves, the same link opens the child's report (/parent/[token]). */
+/**
+ * The private link a student can send a parent to follow their progress (/parent/[token]), no account needed.
+ * Made the first time the student opens their home page.
+ */
 export async function myParentReportLink(): Promise<string | null> {
   if (DEMO_MODE) return `${SITE_URL}/parent/demo`;
   const supabase = await supabaseServer();
-  const { data } = await supabase
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return null;
+  const admin = supabaseAdmin();
+  const { data } = await admin
     .from("parent_consents")
     .select("token")
+    .eq("student_id", auth.user.id)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  return data ? `${SITE_URL}/parent/${data.token}` : null;
-}
-
-export type ConsentState = { step: "send" | "code" | "done"; error?: string; notice?: string };
-
-const maskPhone = (p: string) => {
-  const d = p.replace(/\D/g, "").replace(/^962/, "");
-  return `0${d.slice(0, 2)} ••• ${d.slice(-3)}`;
-};
-
-/** The parent's number for this approval link, masked (07x ••• 123), or null when the link is used or wrong. */
-export async function consentPhoneHint(token: string): Promise<string | null> {
-  if (DEMO_MODE) return token === "demo" ? maskPhone("+962790000123") : null;
-  const { data } = await supabaseAdmin().from("parent_consents").select("parent_phone").eq("token", token).eq("status", "pending").maybeSingle();
-  return data ? maskPhone(data.parent_phone) : null;
-}
-
-/** A Supabase client that keeps no session, so checking the parent's code never signs anyone in. */
-function otpClient() {
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
-}
-
-/**
- * Parent approval, in two steps: a code goes to the parent's own number (the one the student typed),
- * and only that code approves. Holding the link alone is no longer enough.
- */
-export async function parentConsent(token: string, prev: ConsentState, fd: FormData): Promise<ConsentState> {
-  const t = await getT();
-  const sending = fd.get("send") === "1";
-
-  if (DEMO_MODE) {
-    if (token !== "demo") return { step: "send", error: t("This link is not valid or has already been used.") };
-    if (sending) return { step: "code", notice: t("We sent a code to your number.") };
-    if (String(fd.get("code") ?? "").replace(/\D/g, "") !== DEMO_OTP) return { ...prev, notice: undefined, error: t("Wrong code. Check it and try again.") };
-    const s = await getSession();
-    if (s?.role === "student") await setDemoSession({ ...s, consent: "approved" });
-    return { step: "done" };
-  }
-
-  const admin = supabaseAdmin();
-  const { data: c } = await admin.from("parent_consents").select("parent_phone").eq("token", token).eq("status", "pending").maybeSingle();
-  if (!c) return { step: "send", error: t("This link is not valid or has already been used.") };
-  const phone = c.parent_phone as string;
-
-  if (sending) {
-    const { error } = await otpClient().auth.signInWithOtp({ phone, options: { channel: OTP_CHANNEL } });
-    if (error) {
-      console.error("parent code failed", error.status, error.code, error.message);
-      if (error.status === 429 || /rate limit|seconds/i.test(error.message)) return { ...prev, error: t("Please wait a minute before asking for a new code.") };
-      return { ...prev, error: t("We couldn't send the code. Please try again shortly.") };
-    }
-    return { step: "code", notice: t("We sent a code to your number.") };
-  }
-
-  const code = String(fd.get("code") ?? "").replace(/\D/g, "");
-  if (code.length !== 6) return { ...prev, notice: undefined, error: t("The code has 6 digits.") };
-  const { data, error } = await otpClient().auth.verifyOtp({ phone, token: code, type: "sms" });
-  const user = data.user;
-  if (error || !user || user.phone?.replace(/\D/g, "") !== phone.replace(/\D/g, ""))
-    return { ...prev, notice: undefined, error: t("The code is wrong or has expired.") };
-
-  const { data: ok } = await admin.rpc("approve_consent", { p_token: token });
-  // Checking the code made a login for the parent's number. If it is a fresh, empty one, remove it
-  // so it doesn't show up as a student; a parent who already uses Hessa keeps their account.
-  const { data: p } = await admin.from("profiles").select("full_name").eq("id", user.id).maybeSingle();
-  if (!p?.full_name && Date.now() - new Date(user.created_at).getTime() < 15 * 60_000) await admin.auth.admin.deleteUser(user.id);
-  if (!ok) return { step: "send", error: t("This link is not valid or has already been used.") };
-  return { step: "done" };
+  if (data) return `${SITE_URL}/parent/${data.token}`;
+  const { data: made } = await admin.from("parent_consents").insert({ student_id: auth.user.id, parent_phone: "", status: "approved", approved_at: new Date().toISOString() }).select("token").single();
+  return made ? `${SITE_URL}/parent/${made.token}` : null;
 }
 
 export async function signOut() {

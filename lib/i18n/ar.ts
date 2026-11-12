@@ -807,4 +807,6 @@ Object.assign(AR, {
   "To make sure it's you, we'll send a code to the parent's number:": "عشان نتأكد إنك ولي الأمر، رح نبعت كود على رقمك:",
   "Send me the code": "ابعتلي الكود",
   "The code you received": "الكود اللي وصلك",
+  "Enter a valid mobile number with its country code.": "اكتب رقم موبايل صحيح، واختار رمز الدولة.",
+  "Country code": "رمز الدولة",
 });
