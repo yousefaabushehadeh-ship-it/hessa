@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneField } from "@/components/phone-field";
+import { prettyPhone } from "@/lib/phone";
 import Link from "next/link";
 import { useActionState } from "react";
 import { completeProfile, resendOtp, sendOtp, verifyOtp, type LoginState, type Portal } from "@/app/actions/auth";
@@ -84,12 +86,7 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
             <label className="h" htmlFor="ph">
               {t("Mobile number")}
             </label>
-            <div className="inrow" dir="ltr">
-              <span className="field num" style={{ flex: "0 0 auto", width: "auto" }}>
-                +962
-              </span>
-              <input className="field num" id="ph" name="phone" inputMode="numeric" autoComplete="tel-national" required placeholder="7X XXX XXXX" defaultValue={state.phone} />
-            </div>
+            <PhoneField id="ph" value={state.phone} />
           </div>
           <label className="check">
             <input type="checkbox" name="agree" required /> {t("I agree to the")}{" "}
@@ -122,7 +119,7 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
         <form className="frm" action={action}>
           <h1 style={{ fontSize: 24 }}>{t("Enter your code")}</h1>
           <p className="muted">
-            {state.channel === "sms" ? t("We sent a 6-digit code by SMS to") : t("We sent a 6-digit code on WhatsApp to")} <span dir="ltr">+962 {state.phone}</span>.
+            {state.channel === "sms" ? t("We sent a 6-digit code by SMS to") : t("We sent a 6-digit code on WhatsApp to")} <span dir="ltr">{prettyPhone(state.phone ?? "")}</span>.
           </p>
           <input
             className="field num"
@@ -213,32 +210,6 @@ export function LoginFlow({ as, next, demo, startAtProfile, signup, subjects = [
             <input className="field" id="nm" name="name" required autoComplete="name" />
           </div>
           <Select id="gr" name="grade" label={t("Your grade")} options={grades} />
-          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-            <legend className="h">{t("Your age")}</legend>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <label className="opt">
-                <input type="radio" name="age" value="minor" defaultChecked />
-                <span className="t">
-                  <b>{t("Under 18")}</b>
-                </span>
-              </label>
-              <label className="opt">
-                <input type="radio" name="age" value="adult" />
-                <span className="t">
-                  <b>{t("18 or older")}</b>
-                </span>
-              </label>
-            </div>
-          </fieldset>
-          <div>
-            <label className="h" htmlFor="pph">
-              {t("Parent's mobile number (if you are under 18)")}
-            </label>
-            <input className="field num" dir="ltr" id="pph" name="parent" inputMode="numeric" placeholder="7X XXX XXXX" />
-            <p className="muted" style={{ fontSize: 12.5, marginTop: 6 }}>
-              {t("Under Jordan's personal data protection law, students under 18 need a parent's approval.")}
-            </p>
-          </div>
           {state.error && <p className="form-error">{state.error}</p>}
           <button className="btn btn-pri" type="submit" disabled={pending}>
             {pending ? t("One moment...") : t("Continue")}

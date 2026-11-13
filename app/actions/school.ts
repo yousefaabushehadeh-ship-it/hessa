@@ -1,5 +1,6 @@
 "use server";
 
+import { toE164 } from "@/lib/phone";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { DEMO_MODE } from "@/lib/env";
@@ -11,7 +12,6 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export type InviteState = { ok?: string; error?: string };
 
-const PHONE_RE = /^7[789]\d{7}$/;
 
 /** The school adds a teacher by phone. When the teacher signs up with that number, their page opens under the school. */
 export async function addTeacherInvite(_prev: InviteState, fd: FormData): Promise<InviteState> {
@@ -19,14 +19,13 @@ export async function addTeacherInvite(_prev: InviteState, fd: FormData): Promis
   const s = await requireRole("school");
   if (!s.schoolId) return { error: t("Your school account isn't ready yet.") };
   const name = String(fd.get("name") ?? "").trim().slice(0, 80);
-  const local = String(fd.get("phone") ?? "").replace(/\D/g, "").replace(/^(962|0)/, "");
+  const phone = toE164(fd.get("dial"), fd.get("phone"));
   const subject = String(fd.get("subject") ?? "");
   const grade = String(fd.get("grade") ?? "");
   if (name.length < 3) return { error: t("Enter the teacher's full name.") };
-  if (!PHONE_RE.test(local)) return { error: t("Enter a valid Jordanian number starting with 77, 78 or 79.") };
+  if (!phone) return { error: t("Enter a valid mobile number with its country code.") };
   if (!SUBJECT_LIST.includes(subject)) return { error: t("Choose the subject you teach.") };
   if (!TEACHER_GRADES.includes(grade)) return { error: t("Choose the grade you teach.") };
-  const phone = `+962${local}`;
 
   if (DEMO_MODE) {
     if (demoPlatform.invites.some((x) => x.schoolId === s.schoolId && x.phone === phone)) return { error: t("This number is already on your list.") };

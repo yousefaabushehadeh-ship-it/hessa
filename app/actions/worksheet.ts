@@ -6,6 +6,7 @@ import { DEMO_MODE } from "@/lib/env";
 import { findLesson, getMySubscriptions } from "@/lib/data";
 import { demoPlatform } from "@/lib/demo-platform";
 import { getT } from "@/lib/i18n-server";
+import { demoNotify } from "@/lib/notifications";
 import { getSession, requireRole } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -47,6 +48,8 @@ export async function finishHandIn(lessonId: string, fileName: string, path: str
       id: randomUUID(), lessonId, studentId: s.userId, studentName: s.fullName, fileName: name, note: text,
       status: "submitted", mark: null, feedback: null, createdAt: new Date().toISOString().slice(0, 10),
     });
+    const found = await findLesson(lessonId);
+    if (found) demoNotify(`teacher:${found.teacher.id}`, "handin_new", { student: s.fullName, lesson: found.lesson.title }, "/teacher/worksheets");
   } else {
     if (!path || !path.startsWith(`${s.userId}/${lessonId}/`)) return { error: t("We couldn't upload the file.") };
     const supabase = await supabaseServer();
@@ -88,6 +91,7 @@ export async function gradeHandIn(id: string, _prev: GradeState, fd: FormData): 
     const found = sub ? await findLesson(sub.lessonId) : null;
     if (!sub || (s.role === "teacher" && found?.teacher.id !== s.teacherId)) return { error: t("Only the teacher can mark this.") };
     Object.assign(sub, { status: "graded", mark, feedback });
+    demoNotify(sub.studentId, "handin_graded", { lesson: found?.lesson.title ?? "", mark }, `/student/lesson/${sub.lessonId}`);
   } else {
     const supabase = await supabaseServer();
     const { error } = await supabase.rpc("grade_submission", { p_id: id, p_mark: mark, p_feedback: feedback });

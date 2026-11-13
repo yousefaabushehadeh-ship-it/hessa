@@ -3,8 +3,9 @@ import type { T } from "@/lib/i18n";
 import type { Session } from "@/lib/types";
 
 /** The side menu for each kind of account. Shared by the dashboards and the settings page. */
-export function navFor(s: Session, t: T): NavItem[] {
+export function navFor(s: Session, t: T, unread = 0): NavItem[] {
   const settings = { href: "/settings", label: t("Settings"), icon: "gear" };
+  const notices = { href: "/notifications", label: t("Notifications"), icon: "bell", badge: unread };
   if (s.role === "admin")
     return [
       { href: "/admin", label: t("Overview"), icon: "chart" },
@@ -34,6 +35,7 @@ export function navFor(s: Session, t: T): NavItem[] {
           { href: "/teacher/students", label: t("Students"), icon: "users" },
           { href: "/teacher/profile", label: t("My public page"), icon: "globe" },
           { href: "/teacher/verification", label: t("Verification"), icon: "shield" },
+          notices,
           settings,
         ]
       : [{ href: "/teacher", label: t("Verification"), icon: "shield" }, settings];
@@ -42,6 +44,7 @@ export function navFor(s: Session, t: T): NavItem[] {
     { href: "/student/materials", label: t("Study materials"), icon: "book" },
     { href: "/student/find", label: t("Find a teacher"), icon: "search" },
     { href: "/student/redeem", label: t("Activate a code"), icon: "card" },
+    notices,
     settings,
   ];
 }

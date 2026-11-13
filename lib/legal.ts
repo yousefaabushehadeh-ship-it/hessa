@@ -15,7 +15,7 @@ export const PRIVACY: LegalSection[] = [
   {
     h: "What data we collect",
     p: [
-      "From students: your mobile number, full name, grade, whether you are under 18, your parent's mobile number if you are under 18, your subscriptions, the lessons you complete, your quiz answers and scores, and any review you write.",
+      "From students: your mobile number, full name, grade, your subscriptions, the lessons you complete, your quiz answers and scores, and any review you write.",
       "From teachers: your mobile number, full name, the subject you teach, your photo, the content of your public page, and the documents you upload for verification, such as your ID card or passport, degrees, teaching licenses and experience letters.",
       "Technical data: cookies that keep you signed in and remember your language, and basic security logs such as IP address, device type and time of access.",
       "We do not collect payment card data at this stage. Students pay their teacher directly and receive an access code.",
@@ -36,7 +36,7 @@ export const PRIVACY: LegalSection[] = [
     h: "Who can see your data",
     p: [
       "Your teacher sees your name, grade, progress and quiz scores in their own subjects only. They do not see your subscriptions with other teachers.",
-      "Your parent, if you are under 18 and they approved your account, sees your report through their approval link: your progress, quiz scores, worksheet marks and teachers' comments with each of your teachers.",
+      "Your parent, if you send them your report link, sees your progress, quiz scores, worksheet marks and teachers' comments with each of your teachers.",
       "If your teacher joined through a school, the school sees totals per teacher only, such as the number of students and the average progress. It does not see your name or your marks.",
       "Your public review shows your name. Teachers' public pages show their name, photo, subject, qualifications and prices.",
       "Service providers that run the platform for us, only for that purpose: Supabase (database and file storage), Twilio and WhatsApp (Meta) to send login codes, Bunny (video streaming), and our hosting provider. Some of them store data outside Jordan, and we choose providers with strong security safeguards.",
@@ -54,7 +54,7 @@ export const PRIVACY: LegalSection[] = [
   {
     h: "Students under 18",
     p: [
-      "A student under 18 can create an account, but their study materials only open after a parent approves through a link we send them. A parent can withdraw this approval at any time by writing to us, and we then stop using the student's data except what the law requires us to keep.",
+      "A student under 18 should use Hessa with their parent's or guardian's knowledge. A parent can ask us at any time to delete their child's account by writing to us, and we then stop using the student's data except what the law requires us to keep.",
     ],
   },
   {

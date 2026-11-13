@@ -11,7 +11,7 @@ export default async function AdminStudents({ searchParams }: { searchParams: Pr
   const q = sp.q?.trim() ?? "";
   const all = await listAllStudents();
   const list = q ? all.filter((x) => x.name.includes(q) || x.phone.includes(q.replace(/\D/g, "") || "~")) : all;
-  const consent = { not_needed: ["p-ok", t("18+")], approved: ["p-ok", t("Parent approved")], pending: ["p-warn", t("Waiting for parent")], revoked: ["p-bad", t("Approval withdrawn")] } as Record<string, [string, string]>;
+  const consent = { not_needed: ["p-ok", t("Active")], approved: ["p-ok", t("Parent approved")], pending: ["p-warn", t("Waiting for parent")], revoked: ["p-bad", t("Approval withdrawn")] } as Record<string, [string, string]>;
   return (
     <>
       <AdminTop title={t("Students")} sub={t("{n} students. Phone numbers are only for support; don't share them.", { n: all.length })} />

@@ -18,10 +18,6 @@ export default async function Home() {
       t("Agree on a plan with the teacher and pay them directly. They give you an access code, and all their lessons open as soon as you enter it. Online payments (CliQ and wallets) are coming soon."),
     ],
     [
-      t("Why do you ask for a parent's approval?"),
-      t("Most of our students are under 18, and Jordan's personal data protection law (No. 24 of 2023) requires clear consent. We send your parent a link, and they approve it in one tap."),
-    ],
-    [
       t("How do you protect the teachers' study materials?"),
       t("Files are stored privately and open through a temporary link for subscribers only. Every file carries a watermark with the student's name."),
     ],
